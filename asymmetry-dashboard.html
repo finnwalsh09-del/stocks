@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catalyst Board — 8 AI Infra Names · Live Prices</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c12;
+  --bg2: #0d1520;
+  --panel: #111827;
+  --panel2: #161f2e;
+  --panel3: #1c2a3d;
+  --line: #1e2d42;
+  --line2: #253447;
+  --ink: #e8f0fa;
+  --ink-dim: #8ba3be;
+  --ink-faint: #4d6480;
+  --gold: #f0b429;
+  --gold-dim: rgba(240,180,41,.15);
+  --teal: #34d399;
+  --teal-dim: rgba(52,211,153,.12);
+  --amber: #f59e0b;
+  --amber-dim: rgba(245,158,11,.12);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,.12);
+  --blue: #60a5fa;
+  --blue-dim: rgba(96,165,250,.1);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,.1);
+  --cyan: #22d3ee;
+  --cyan-dim: rgba(34,211,238,.1);
+
+  /* signal colors */
+  --sig-now: #34d399;
+  --sig-dip: #f59e0b;
+  --sig-wait: #f87171;
+  --sig-avoid: #6b7280;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ─── BACKGROUND ─────────────────────────────── */
+.bg-orbs {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.bg-orbs::before {
+  content: '';
+  position: absolute;
+  width: 900px; height: 600px;
+  top: -200px; right: -200px;
+  background: radial-gradient(ellipse, rgba(96,165,250,.07) 0%, transparent 65%);
+  animation: orbFloat1 18s ease-in-out infinite;
+}
+.bg-orbs::after {
+  content: '';
+  position: absolute;
+  width: 700px; height: 500px;
+  bottom: 10%; left: -150px;
+  background: radial-gradient(ellipse, rgba(240,180,41,.05) 0%, transparent 65%);
+  animation: orbFloat2 22s ease-in-out infinite;
+}
+.bg-grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@keyframes orbFloat1 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(-40px, 30px) scale(1.05); }
+  66% { transform: translate(20px, -20px) scale(.97); }
+}
+@keyframes orbFloat2 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(30px, -40px) scale(1.08); }
+}
+
+/* ─── LAYOUT ─────────────────────────────────── */
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+/* ─── NAV ────────────────────────────────────── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(8,12,18,.8);
+  border-bottom: 1px solid var(--line);
+  padding: 0 24px;
+}
+.nav-inner {
+  max-width: 1320px; margin: 0 auto;
+  display: flex; align-items: center; gap: 0;
+  height: 52px;
+}
+.nav-brand {
+  font-family: 'Fraunces', serif; font-weight: 900; font-size: 15px;
+  color: var(--ink); text-decoration: none; margin-right: auto;
+  letter-spacing: -.02em;
+}
+.nav-brand span { color: var(--gold); }
+.nav-links {
+  display: flex; gap: 0; list-style: none;
+}
+.nav-links a {
+  display: block; padding: 0 14px; height: 52px; line-height: 52px;
+  font-size: 12px; font-weight: 500; color: var(--ink-faint);
+  text-decoration: none; letter-spacing: .04em; text-transform: uppercase;
+  transition: color .2s; border-bottom: 2px solid transparent;
+}
+.nav-links a:hover { color: var(--ink); border-color: var(--blue); }
+
+/* ─── HERO ───────────────────────────────────── */
+.hero {
+  padding: 72px 0 56px;
+}
+.hero-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; letter-spacing: .35em; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 18px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hero-eyebrow::before {
+  content: ''; width: 24px; height: 1px; background: var(--blue);
+}
+.hero h1 {
+  font-family: 'Fraunces', serif; font-weight: 900;
+  font-size: clamp(36px, 6vw, 68px);
+  line-height: 1.0; letter-spacing: -.025em;
+  margin-bottom: 22px;
+}
+.hero h1 em { font-style: italic; color: var(--gold); }
+.hero h1 .dim { color: var(--ink-dim); font-weight: 300; }
+.hero-sub {
+  font-size: 16px; color: var(--ink-dim); max-width: 680px;
+  line-height: 1.7; margin-bottom: 32px;
+}
+.hero-sub strong { color: var(--ink); }
+.hero-meta {
+  display: flex; flex-wrap: wrap; gap: 10px;
+}
+.meta-chip {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  padding: 6px 12px; border-radius: 6px;
+  border: 1px solid var(--line2);
+  color: var(--ink-dim); background: var(--panel);
+  letter-spacing: .06em; text-transform: uppercase;
+}
+.meta-chip.hot { border-color: rgba(240,180,41,.4); color: var(--gold); background: var(--gold-dim); }
+.meta-chip.live { border-color: rgba(52,211,153,.4); color: var(--teal); background: var(--teal-dim); }
+
+/* ─── DISCLAIMER ─────────────────────────────── */
+.disclaimer {
+  margin-bottom: 48px;
+  background: rgba(240,180,41,.04);
+  border: 1px solid rgba(240,180,41,.2);
+  border-left: 3px solid var(--gold);
+  border-radius: 12px; padding: 16px 20px;
+  font-size: 13px; color: var(--ink-dim);
+}
+.disclaimer strong { color: var(--amber); }
+
+/* ─── SECTION HEADERS ────────────────────────── */
+.section { padding: 0 0 64px; }
+.section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; letter-spacing: .4em; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-label::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--line2), transparent);
+}
+.section-title {
+  font-family: 'Fraunces', serif; font-weight: 600;
+  font-size: clamp(22px, 3vw, 30px); letter-spacing: -.015em;
+  margin-bottom: 6px;
+}
+.section-desc { font-size: 14px; color: var(--ink-dim); margin-bottom: 28px; }
+
+/* ─── SIGNAL LEGEND ──────────────────────────── */
+.signal-legend {
+  display: flex; flex-wrap: wrap; gap: 10px 24px;
+  margin-bottom: 28px; align-items: center;
+}
+.sig-item {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: var(--ink-dim);
+}
+.sig-dot { width: 10px; height: 10px; border-radius: 50%; }
+.sig-dot.now { background: var(--sig-now); box-shadow: 0 0 6px rgba(52,211,153,.6); }
+.sig-dot.dip { background: var(--sig-dip); }
+.sig-dot.wait { background: var(--sig-wait); }
+.sig-dot.avoid { background: var(--sig-avoid); }
+
+/* ─── STOCK CARDS ────────────────────────────── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(580px, 1fr));
+  gap: 20px;
+}
+@media (max-width: 640px) { .cards-grid { grid-template-columns: 1fr; } }
+
+.stock-card {
+  background: linear-gradient(145deg, var(--panel), var(--panel2));
+  border: 1px solid var(--line2);
+  border-radius: 18px;
+  overflow: hidden;
+  transition: transform .3s cubic-bezier(.2,.8,.3,1), box-shadow .3s ease, border-color .3s ease;
+  cursor: default;
+}
+.stock-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,.5);
+}
+.stock-card.sig-now  { border-top: 2px solid var(--sig-now); }
+.stock-card.sig-dip  { border-top: 2px solid var(--sig-dip); }
+.stock-card.sig-wait { border-top: 2px solid var(--sig-wait); }
+.stock-card.sig-avoid{ border-top: 2px solid var(--sig-avoid); }
+.stock-card.sig-now:hover  { border-color: var(--sig-now); box-shadow: 0 24px 60px -20px rgba(52,211,153,.2); }
+.stock-card.sig-dip:hover  { border-color: var(--sig-dip); box-shadow: 0 24px 60px -20px rgba(245,158,11,.2); }
+.stock-card.sig-wait:hover { border-color: var(--sig-wait); box-shadow: 0 24px 60px -20px rgba(248,113,113,.2); }
+
+.card-header {
+  padding: 20px 22px 16px;
+  display: flex; align-items: flex-start; gap: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.card-rank {
+  font-family: 'Fraunces', serif; font-weight: 900;
+  font-size: 32px; color: var(--ink-faint); min-width: 34px;
+  line-height: 1; margin-top: 3px;
+  transition: color .2s;
+}
+.stock-card:hover .card-rank { color: var(--gold); }
+.card-id { flex: 1; }
+.card-ticker {
+  font-family: 'IBM Plex Mono', monospace; font-weight: 600;
+  font-size: 20px; color: var(--ink);
+}
+.card-name { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
+.card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.tag {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9.5px;
+  letter-spacing: .07em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 20px;
+  border: 1px solid var(--line2); color: var(--ink-dim);
+}
+.tag.ai    { background: var(--blue-dim);   border-color: rgba(96,165,250,.3);   color: var(--blue);   }
+.tag.mem   { background: var(--purple-dim); border-color: rgba(167,139,250,.3);  color: var(--purple); }
+.tag.power { background: var(--teal-dim);   border-color: rgba(52,211,153,.3);   color: var(--teal);   }
+.tag.crypto{ background: var(--amber-dim);  border-color: rgba(245,158,11,.3);   color: var(--amber);  }
+.tag.cloud { background: var(--cyan-dim);   border-color: rgba(34,211,238,.3);   color: var(--cyan);   }
+.tag.nand  { background: var(--red-dim);    border-color: rgba(248,113,113,.3);  color: var(--red);    }
+
+.card-signal-badge {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+}
+.signal-badge {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  padding: 5px 10px; border-radius: 7px; white-space: nowrap;
+}
+.sb-now  { background: rgba(52,211,153,.15); color: var(--sig-now); border: 1px solid rgba(52,211,153,.35); }
+.sb-dip  { background: rgba(245,158,11,.12); color: var(--sig-dip); border: 1px solid rgba(245,158,11,.3);  }
+.sb-wait { background: rgba(248,113,113,.12);color: var(--sig-wait);border: 1px solid rgba(248,113,113,.3); }
+.sb-avoid{ background: rgba(107,114,128,.12);color: #9ca3af;        border: 1px solid rgba(107,114,128,.25);}
+.price-tag {
+  font-family: 'IBM Plex Mono', monospace; font-weight: 700;
+  font-size: 20px; color: var(--ink);
+  padding: 10px 14px; border-radius: 12px;
+  border: 1px solid var(--line2);
+  background: rgba(255,255,255,.03);
+  text-align: right; min-width: 120px;
+  transition: box-shadow .4s ease, background .4s ease, border-color .4s ease;
+}
+.price-tag .cap { font-size: 11px; color: var(--ink-faint); display: block; text-align: right; margin-top: 3px; }
+
+/* ── Signal-based price glow ── */
+.stock-card.sig-now .price-tag {
+  color: var(--teal);
+  background: rgba(52,211,153,.1);
+  border-color: rgba(52,211,153,.4);
+  box-shadow: 0 0 22px rgba(52,211,153,.18), 0 0 50px rgba(52,211,153,.07);
+}
+.stock-card.sig-dip .price-tag {
+  color: var(--amber);
+  background: rgba(245,158,11,.09);
+  border-color: rgba(245,158,11,.35);
+  box-shadow: 0 0 18px rgba(245,158,11,.13);
+}
+.stock-card.sig-wait .price-tag {
+  color: var(--red);
+  background: rgba(248,113,113,.07);
+  border-color: rgba(248,113,113,.25);
+  box-shadow: 0 0 14px rgba(248,113,113,.08);
+}
+.stock-card.sig-avoid .price-tag {
+  color: #9ca3af;
+  background: rgba(107,114,128,.07);
+  border-color: rgba(107,114,128,.2);
+}
+
+.card-body { padding: 18px 22px; }
+
+/* stat rows */
+.stat-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  margin-bottom: 16px;
+}
+.stat-box {
+  background: rgba(255,255,255,.025);
+  border: 1px solid var(--line);
+  border-radius: 10px; padding: 11px 12px;
+}
+.stat-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 4px;
+}
+.stat-val {
+  font-family: 'IBM Plex Mono', monospace; font-weight: 600;
+  font-size: 14px; color: var(--ink);
+}
+.stat-val.up   { color: var(--teal);   }
+.stat-val.down { color: var(--red);    }
+.stat-val.warn { color: var(--amber);  }
+
+/* upside bar */
+.upside-bar-wrap {
+  margin-bottom: 16px;
+}
+.upside-bar-label {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; color: var(--ink-dim); margin-bottom: 6px;
+}
+.upside-bar-label .pct {
+  font-family: 'IBM Plex Mono', monospace; font-weight: 600;
+  font-size: 14px;
+}
+.upside-bar-label .pct.positive { color: var(--teal); }
+.upside-bar-label .pct.negative { color: var(--red); }
+.upside-bar-label .pct.neutral  { color: var(--amber); }
+.bar-track {
+  height: 6px; background: var(--line); border-radius: 99px; overflow: hidden;
+}
+.bar-fill {
+  height: 100%; border-radius: 99px;
+  width: 0; /* animated via JS */
+  transition: width 1.2s cubic-bezier(.4,0,.2,1) .3s;
+}
+.bar-fill.positive { background: linear-gradient(90deg, #059669, #34d399); }
+.bar-fill.neutral  { background: linear-gradient(90deg, #b45309, #f59e0b); }
+.bar-fill.negative { background: linear-gradient(90deg, #dc2626, #f87171); }
+
+/* thesis / entry sections */
+.card-section { margin-bottom: 14px; }
+.card-section-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px; letter-spacing: .15em; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 7px;
+  display: flex; align-items: center; gap: 6px;
+}
+.card-section-title::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(96,165,250,.3), transparent);
+}
+.card-section p {
+  font-size: 13px; color: var(--ink-dim); line-height: 1.6;
+}
+.card-section p strong { color: var(--ink); }
+
+/* entry zone */
+.entry-zone {
+  background: rgba(52,211,153,.05);
+  border: 1px solid rgba(52,211,153,.2);
+  border-radius: 10px; padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.entry-zone.dip-zone {
+  background: rgba(245,158,11,.05);
+  border-color: rgba(245,158,11,.2);
+}
+.entry-zone.wait-zone {
+  background: rgba(248,113,113,.05);
+  border-color: rgba(248,113,113,.2);
+}
+.entry-zone-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px; letter-spacing: .15em; text-transform: uppercase;
+  color: var(--teal); margin-bottom: 7px; display: flex; align-items: center; gap: 6px;
+}
+.entry-zone.dip-zone .entry-zone-title  { color: var(--amber); }
+.entry-zone.wait-zone .entry-zone-title { color: var(--red); }
+.entry-levels {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.entry-pill {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
+  padding: 4px 10px; border-radius: 6px;
+  background: rgba(52,211,153,.12); color: var(--teal);
+  border: 1px solid rgba(52,211,153,.3);
+}
+.entry-zone.dip-zone  .entry-pill { background: rgba(245,158,11,.12); color: var(--amber); border-color: rgba(245,158,11,.3); }
+.entry-zone.wait-zone .entry-pill { background: rgba(248,113,113,.12); color: var(--red);   border-color: rgba(248,113,113,.3); }
+.entry-note {
+  font-size: 12px; color: var(--ink-dim); margin-top: 7px; line-height: 1.5;
+}
+.entry-note strong { color: var(--ink); }
+
+/* kill switch */
+.kill-switch {
+  background: rgba(248,113,113,.06);
+  border: 1px solid rgba(248,113,113,.2);
+  border-radius: 10px; padding: 11px 14px;
+}
+.ks-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--red); margin-bottom: 6px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ks-title::before { content: '✕'; }
+.ks-text { font-size: 12.5px; color: var(--ink-dim); line-height: 1.5; }
+
+/* catalyst pill row */
+.catalyst-row {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.catalyst-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--panel3); border: 1px solid var(--line2);
+  border-radius: 8px; padding: 6px 11px;
+  font-size: 12px; color: var(--ink-dim);
+}
+.catalyst-pill .when {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  color: var(--cyan); font-weight: 600; white-space: nowrap;
+}
+.catalyst-pill .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); }
+
+/* confidence */
+.confidence-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+}
+.conf-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint);
+  white-space: nowrap;
+}
+.conf-pips {
+  display: flex; gap: 4px;
+}
+.pip {
+  width: 20px; height: 6px; border-radius: 3px;
+  background: var(--line);
+}
+.pip.filled.high   { background: var(--teal);   }
+.pip.filled.med    { background: var(--amber);  }
+.pip.filled.low    { background: var(--red);    }
+.conf-text {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  color: var(--ink-dim);
+}
+
+/* ─── VALUATION TABLE ────────────────────────── */
+.val-table-wrap {
+  background: linear-gradient(180deg, var(--panel), var(--panel2));
+  border: 1px solid var(--line2); border-radius: 18px;
+  overflow: hidden; box-shadow: 0 24px 64px -28px rgba(0,0,0,.6);
+}
+.val-scroller { overflow-x: auto; }
+.val-table { width: 100%; border-collapse: collapse; min-width: 960px; }
+.val-table thead th {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ink-faint); text-align: left;
+  padding: 16px 16px; border-bottom: 1px solid var(--line);
+  background: rgba(0,0,0,.2); white-space: nowrap;
+}
+.val-table tbody tr {
+  border-bottom: 1px solid rgba(30,45,66,.8);
+  transition: background .2s;
+}
+.val-table tbody tr:last-child { border-bottom: none; }
+.val-table tbody tr:hover { background: rgba(96,165,250,.04); }
+.val-table td { padding: 14px 16px; font-size: 13px; vertical-align: middle; }
+.vt-ticker {
+  font-family: 'IBM Plex Mono', monospace; font-weight: 600;
+  font-size: 15px; color: var(--ink);
+}
+.vt-sector { font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+.vt-num {
+  font-family: 'IBM Plex Mono', monospace; font-weight: 500;
+  color: var(--ink);
+}
+.vt-good { color: var(--teal); font-weight: 600; }
+.vt-warn { color: var(--amber); font-weight: 600; }
+.vt-bad  { color: var(--red); font-weight: 600; }
+.vt-nm   { color: var(--ink-faint); font-size: 11px; }
+.vs-badge {
+  display: inline-block; font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; font-weight: 600; padding: 4px 9px; border-radius: 6px;
+}
+.vs-good  { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(52,211,153,.3); }
+.vs-mid   { background: var(--amber-dim);color: var(--amber); border: 1px solid rgba(245,158,11,.3); }
+.vs-poor  { background: var(--red-dim);  color: var(--red);   border: 1px solid rgba(248,113,113,.3); }
+
+/* ─── MACRO PANEL ────────────────────────────── */
+.macro-panel {
+  background: var(--panel);
+  border: 1px solid var(--line2);
+  border-radius: 18px; padding: 30px 32px;
+}
+.macro-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 20px; }
+.macro-item {
+  background: var(--panel2); border: 1px solid var(--line);
+  border-radius: 12px; padding: 18px 20px;
+  transition: border-color .25s, transform .25s;
+}
+.macro-item:hover { border-color: var(--blue); transform: translateY(-2px); }
+.macro-num {
+  font-family: 'Fraunces', serif; font-weight: 900;
+  font-size: 36px; color: rgba(96,165,250,.2); line-height: 1;
+  margin-bottom: 8px;
+}
+.macro-item h3 { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.macro-item p  { font-size: 13px; color: var(--ink-dim); line-height: 1.6; }
+
+/* ─── HOWTO ROW ──────────────────────────────── */
+.howto-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px; margin-top: 28px;
+}
+.howto-card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; padding: 18px 20px;
+  transition: border-color .2s;
+}
+.howto-card:hover { border-color: var(--line2); }
+.howto-card h3 {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 8px;
+}
+.howto-card p { font-size: 12.5px; color: var(--ink-dim); line-height: 1.6; }
+
+/* ─── FOOTER ─────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--line);
+  padding: 28px 0 48px;
+  font-size: 12px; color: var(--ink-faint); line-height: 1.8;
+}
+footer strong { color: var(--ink-dim); }
+
+/* ─── ANIMATIONS ─────────────────────────────── */
+.fade-up {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+
+/* stagger delays */
+.fade-up:nth-child(1) { transition-delay: .05s; }
+.fade-up:nth-child(2) { transition-delay: .12s; }
+.fade-up:nth-child(3) { transition-delay: .19s; }
+.fade-up:nth-child(4) { transition-delay: .26s; }
+.fade-up:nth-child(5) { transition-delay: .33s; }
+.fade-up:nth-child(6) { transition-delay: .40s; }
+.fade-up:nth-child(7) { transition-delay: .47s; }
+.fade-up:nth-child(8) { transition-delay: .54s; }
+
+@media (max-width: 720px) {
+  .stat-row { grid-template-columns: repeat(2, 1fr); }
+  .nav-links { display: none; }
+  .hero { padding: 44px 0 36px; }
+  .cards-grid { grid-template-columns: 1fr; }
+}
+
+/* ─── API KEY MODAL ─────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(8,12,18,.88);
+  backdrop-filter: blur(14px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; opacity: 0; pointer-events: none;
+  transition: opacity .3s ease;
+}
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: var(--panel2); border: 1px solid var(--line2);
+  border-top: 2px solid var(--blue); border-radius: 20px;
+  padding: 36px 40px; max-width: 460px; width: 100%;
+  box-shadow: 0 32px 80px rgba(0,0,0,.65);
+  transform: translateY(14px); transition: transform .3s ease;
+}
+.modal-overlay.show .modal-box { transform: translateY(0); }
+.modal-eyebrow {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  letter-spacing: .32em; text-transform: uppercase;
+  color: var(--blue); margin-bottom: 12px;
+}
+.modal-title {
+  font-family: 'Fraunces', serif; font-weight: 900;
+  font-size: 28px; letter-spacing: -.02em; margin-bottom: 12px;
+}
+.modal-desc { font-size: 14px; color: var(--ink-dim); line-height: 1.65; margin-bottom: 18px; }
+.modal-desc strong { color: var(--ink); }
+.modal-link {
+  display: inline-block; margin-bottom: 22px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  color: var(--blue); text-decoration: none;
+  border-bottom: 1px solid rgba(96,165,250,.35); padding-bottom: 2px;
+  transition: border-color .2s, color .2s;
+}
+.modal-link:hover { border-color: var(--blue); color: #93c5fd; }
+.modal-input {
+  width: 100%; background: var(--panel3);
+  border: 1px solid var(--line2); border-radius: 10px;
+  padding: 13px 16px; font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px; color: var(--ink); outline: none;
+  margin-bottom: 12px; transition: border-color .2s; display: block;
+}
+.modal-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(96,165,250,.12); }
+.modal-input::placeholder { color: var(--ink-faint); }
+.modal-btn {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg,#1d4ed8,#3b82f6);
+  border: none; border-radius: 10px; color: #fff;
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+  font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  cursor: pointer; transition: opacity .2s, transform .15s;
+}
+.modal-btn:hover { opacity: .9; transform: translateY(-1px); }
+.modal-note { font-size: 11px; color: var(--ink-faint); text-align: center; margin-top: 14px; line-height: 1.55; }
+.modal-error { color: var(--red); font-size: 12px; margin-bottom: 10px; display: none; }
+.modal-error.show { display: block; }
+
+/* ─── LIVE DATA BAR ──────────────────────────── */
+.live-bar {
+  background: rgba(52,211,153,.04);
+  border-bottom: 1px solid rgba(52,211,153,.12);
+  padding: 7px 24px; display: flex; align-items: center; gap: 10px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  color: var(--ink-dim); position: relative; z-index: 98; flex-wrap: wrap;
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  background: var(--teal);
+  box-shadow: 0 0 0 0 rgba(52,211,153,.5);
+  animation: livepulse 2.5s ease-out infinite;
+}
+.live-dot.loading { background: var(--amber); animation: none; opacity: .7; }
+.live-dot.error   { background: var(--red);   animation: none; }
+@keyframes livepulse {
+  0%   { box-shadow: 0 0 0 0 rgba(52,211,153,.5); }
+  70%  { box-shadow: 0 0 0 9px rgba(52,211,153,0); }
+  100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+}
+#live-label          { color: var(--teal); font-weight: 600; letter-spacing: .04em; }
+#live-label.loading  { color: var(--amber); }
+#live-label.error    { color: var(--red); }
+.live-sub            { color: var(--ink-faint); font-size: 10px; }
+#live-time           { color: var(--ink-faint); margin-left: auto; font-size: 10px; }
+.live-refresh {
+  background: none; border: 1px solid var(--line2); color: var(--ink-dim);
+  padding: 3px 10px; border-radius: 5px; font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; letter-spacing: .05em; text-transform: uppercase;
+  cursor: pointer; transition: all .2s;
+}
+.live-refresh:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-dim); }
+
+/* ─── LIVE PRICE ELEMENTS ────────────────────── */
+.live-change {
+  display: block; margin-top: 4px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 700;
+  letter-spacing: .02em;
+}
+.chg-up   { color: #34d399; text-shadow: 0 0 10px rgba(52,211,153,.5); }
+.chg-down { color: #f87171; text-shadow: 0 0 10px rgba(248,113,113,.4); }
+.chg-flat { color: var(--ink-faint); }
+
+@keyframes priceFlash {
+  0%   { background: rgba(52,211,153,.2); }
+  100% { background: transparent; }
+}
+.price-updated { animation: priceFlash .9s ease-out; border-radius: 6px; padding: 2px 4px; }
+</style>
+</head>
+<body>
+
+<div class="bg-orbs"></div>
+<div class="bg-grain"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="#">Catalyst <span>Board</span></a>
+    <ul class="nav-links">
+      <li><a href="#signals">Signals</a></li>
+      <li><a href="#cards">Stocks</a></li>
+      <li><a href="#valuation">Valuation</a></li>
+      <li><a href="#macro">Macro</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- API KEY MODAL -->
+<div class="modal-overlay" id="apikey-modal">
+  <div class="modal-box">
+    <div class="modal-eyebrow">One-time setup · Free</div>
+    <div class="modal-title">Connect Live Prices</div>
+    <p class="modal-desc">
+      This dashboard pulls real-time prices from <strong>Finnhub</strong> — a financial data API
+      built for exactly this. A free account takes 30 seconds, no credit card needed.
+    </p>
+    <a class="modal-link" href="https://finnhub.io/register" target="_blank" rel="noopener">
+      Get your free API key at finnhub.io →
+    </a>
+    <div class="modal-error" id="modal-error">Invalid key — check it and try again.</div>
+    <input id="apikey-input" class="modal-input" type="text"
+           placeholder="Paste your Finnhub API key here…"
+           autocomplete="off" spellcheck="false"
+           onkeydown="if(event.key==='Enter')saveApiKey()">
+    <button class="modal-btn" onclick="saveApiKey()">Connect &amp; Load Prices</button>
+    <p class="modal-note">Stored only in your browser's local storage. Never shared or logged by this page.</p>
+  </div>
+</div>
+
+<!-- LIVE DATA BAR -->
+<div class="live-bar">
+  <span class="live-dot loading" id="live-dot"></span>
+  <span id="live-label" class="loading">Initialising…</span>
+  <span class="live-sub" id="live-sub">Finnhub · auto-refreshes every 90s</span>
+  <span id="live-time"></span>
+  <button class="live-refresh" onclick="fetchLiveData()">↺ Refresh</button>
+  <button class="live-refresh" onclick="resetApiKey()" style="margin-left:4px">⚙ API Key</button>
+</div>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero fade-up">
+    <div class="hero-eyebrow">Skeptical Buy-Side · Live Market Data</div>
+    <h1>The <em>Catalyst</em><br><span class="dim">Board</span></h1>
+    <p class="hero-sub">
+      8 AI-infra / memory / power names ranked by <strong>remaining</strong> asymmetric upside.
+      Most of this list has already run hard — the ranking reflects who still has a real path to 3×,
+      what price you should pay, and the single event that kills each thesis.
+    </p>
+    <div class="hero-meta">
+      <span class="meta-chip">Horizon: 2–3 Yrs</span>
+      <span class="meta-chip hot">Risk: High · 3×+ Target</span>
+      <span class="meta-chip">8 Names</span>
+      <span class="meta-chip live" id="hero-live-chip">● Prices: Live</span>
+      <span class="meta-chip">Cap: Ignore Size Filter</span>
+    </div>
+  </section>
+
+  <div class="disclaimer fade-up">
+    <strong>Not investment advice.</strong> This is an informational, analytical read of risk/reward and the catalyst calendar — not a recommendation to buy or sell. Several figures are estimates; parabolic moves make multiples unreliable. Verify against live filings before acting. You can lose substantial capital on any of these.
+  </div>
+
+  <!-- SIGNAL LEGEND -->
+  <div id="signals" class="section">
+    <div class="section-label">Entry Signals</div>
+    <h2 class="section-title">How to read the signals</h2>
+    <p class="section-desc">Each card carries an entry signal based on current price vs. analyst targets, technical support, and thesis risk. These are not timing calls — they are risk/reward reads.</p>
+    <div class="signal-legend">
+      <div class="sig-item"><span class="sig-dot now"></span> <strong>Add Now</strong> — price is at or near a compelling risk/reward level; thesis intact</div>
+      <div class="sig-item"><span class="sig-dot dip"></span> <strong>Buy the Dip</strong> — interested but needs a pullback to target entry zone</div>
+      <div class="sig-item"><span class="sig-dot wait"></span> <strong>Wait</strong> — strong business but consensus upside is thin; needs a reset</div>
+      <div class="sig-item"><span class="sig-dot avoid"></span> <strong>Avoid New Entry</strong> — thesis largely priced in; risk/reward skews negative from here</div>
+    </div>
+  </div>
+
+  <!-- CARDS -->
+  <div id="cards" class="section">
+    <div class="section-label">Deep Dives</div>
+    <h2 class="section-title">8 Names, Ranked by Remaining Upside</h2>
+    <p class="section-desc">Ranked 1–8 by risk-adjusted remaining upside — not company quality. AMD and MU are the best businesses; they rank mid-low because their size kills the 3× math.</p>
+
+    <div class="cards-grid">
+
+      <!-- ══ 1 · IREN ══════════════════════════════════════ -->
+      <div class="stock-card sig-now fade-up">
+        <div class="card-header">
+          <div class="card-rank">1</div>
+          <div class="card-id">
+            <div class="card-ticker">IREN</div>
+            <div class="card-name">IREN Ltd</div>
+            <div class="card-tags">
+              <span class="tag ai">AI Cloud</span>
+              <span class="tag crypto">Ex-BTC Miner</span>
+              <span class="tag cloud">Neocloud</span>
+            </div>
+          </div>
+          <div class="card-signal-badge">
+            <span class="signal-badge sb-now">● Add Now</span>
+            <div class="price-tag">~$57<span class="cap">~$13B cap</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-label">Analyst Target</div>
+              <div class="stat-val up">$75–80</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Consensus</div>
+              <div class="stat-val up">Buy · 11 Analysts</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Target ARR</div>
+              <div class="stat-val">$4.4B</div>
+            </div>
+          </div>
+
+          <div class="upside-bar-wrap">
+            <div class="upside-bar-label">
+              <span>Current $57 → Avg target $78</span>
+              <span class="pct positive">+37% to target</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill positive" data-width="37"></div></div>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Thesis</div>
+            <p>Vertically-integrated AI cloud built on 4.5GW+ secured power. <strong>Key update:</strong> IREN now has two major contracts — a $1.9B Microsoft prepayment covering 95% of GPU capex toward $3.4B ARR, <em>plus</em> a new $3.4B NVIDIA 5-year contract for Blackwell GPUs at Childress (ramp early 2027). Total ARR target raised to <strong>$4.4B</strong>. At $13B market cap, you're buying a heavily-contracted AI cloud at ~3× forward ARR — the most defined upside in this set.</p>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Key Catalysts</div>
+            <div class="catalyst-row">
+              <div class="catalyst-pill"><span class="dot"></span> 140k GPU / $3.4B ARR milestone <span class="when">▸ END CY26</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> NVIDIA Blackwell ramp at Childress <span class="when">▸ EARLY 2027</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> Sweetwater substation energization <span class="when">▸ H2 2026</span></div>
+            </div>
+          </div>
+
+          <div class="entry-zone">
+            <div class="entry-zone-title">● Entry Zone</div>
+            <div class="entry-levels">
+              <span class="entry-pill">Ideal: $42–50</span>
+              <span class="entry-pill">Acceptable: $50–60</span>
+              <span class="entry-pill">Support: ~$32</span>
+            </div>
+            <div class="entry-note">At ~$57 the risk/reward is reasonable — analyst consensus is $78 and contracts cover most capex. <strong>Best entries</strong> come on broader AI selloffs toward $42–50. The $32 support (52-week low zone) would be a compelling add. Don't chase above $70 without execution confirmation.</div>
+          </div>
+
+          <div class="confidence-row">
+            <span class="conf-label">3× Confidence</span>
+            <div class="conf-pips">
+              <div class="pip filled med"></div><div class="pip filled med"></div>
+              <div class="pip filled med"></div><div class="pip"></div><div class="pip"></div>
+            </div>
+            <span class="conf-text">Medium — contracted but execution-dependent</span>
+          </div>
+
+          <div class="kill-switch">
+            <div class="ks-title">Kill Switch</div>
+            <div class="ks-text">Microsoft or NVIDIA contract delay/renegotiation. A GPU deployment slip of 3+ months resets the ARR timeline and the re-rating catalyst. Watch quarterly GPU count disclosures.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 2 · FLNC ══════════════════════════════════════ -->
+      <div class="stock-card sig-dip fade-up">
+        <div class="card-header">
+          <div class="card-rank">2</div>
+          <div class="card-id">
+            <div class="card-ticker">FLNC</div>
+            <div class="card-name">Fluence Energy</div>
+            <div class="card-tags">
+              <span class="tag power">Energy Storage</span>
+              <span class="tag ai">AI Datacenter Power</span>
+            </div>
+          </div>
+          <div class="card-signal-badge">
+            <span class="signal-badge sb-dip">⬇ Buy the Dip</span>
+            <div class="price-tag">~$19<span class="cap">~$3.7B cap</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-label">Analyst Target</div>
+              <div class="stat-val warn">~$17</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">FY26 Revenue Guide</div>
+              <div class="stat-val">$3.2–3.6B</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Backlog</div>
+              <div class="stat-val up">$5.6B ↑ Record</div>
+            </div>
+          </div>
+
+          <div class="upside-bar-wrap">
+            <div class="upside-bar-label">
+              <span>Analyst target below current price</span>
+              <span class="pct negative">−10% consensus</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill negative" data-width="15"></div></div>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Thesis</div>
+            <p>Smallest cap of the set with a <strong>record $5.6B backlog</strong> and a Siemens/NVIDIA AI factory power tie-up. Just dropped 10% on a Q2 revenue miss (revenue +8% YoY to $465M, below consensus). Gross margin is thin at ~11%. The 3× is still possible if the backlog converts cleanly, but you need the right price — the miss confirmed execution risk is real. <strong>FY26 guide reaffirmed</strong> at $3.2–3.6B, which is a positive signal.</p>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Key Catalysts</div>
+            <div class="catalyst-row">
+              <div class="catalyst-pill"><span class="dot"></span> H2 2026 backlog revenue ramp <span class="when">▸ Q3/Q4 2026</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> Siemens/NVIDIA AI factory supply deal <span class="when">▸ ONGOING</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> Hyperscaler MSA conversions <span class="when">▸ H2 2026</span></div>
+            </div>
+          </div>
+
+          <div class="entry-zone dip-zone">
+            <div class="entry-zone-title">⬇ Entry Zone — Wait for Pullback</div>
+            <div class="entry-levels">
+              <span class="entry-pill">Ideal: $13–15</span>
+              <span class="entry-pill">Acceptable: $15–17</span>
+              <span class="entry-pill">Avoid above $20</span>
+            </div>
+            <div class="entry-note">The 10% drop on June 4 makes this more interesting, but analyst consensus is actually <em>below</em> current price. <strong>The real entry is another flush toward $13–15</strong> on another miss or margin disappointment. At $13–15, the $5.6B backlog vs ~$3.5B market cap math starts to work. Don't buy the bounce yet.</div>
+          </div>
+
+          <div class="confidence-row">
+            <span class="conf-label">3× Confidence</span>
+            <div class="conf-pips">
+              <div class="pip filled med"></div><div class="pip filled med"></div>
+              <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+            </div>
+            <span class="conf-text">Medium-Low — backlog real, execution risk real</span>
+          </div>
+
+          <div class="kill-switch">
+            <div class="ks-title">Kill Switch</div>
+            <div class="ks-text">Another revenue miss or gross margin compression below 10%. If Q3 2026 revenue comes in below $700M with flat/declining backlog, the thesis breaks. Watch gross margin every quarter — it's the thin thread holding the valuation.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 3 · CIFR ══════════════════════════════════════ -->
+      <div class="stock-card sig-dip fade-up">
+        <div class="card-header">
+          <div class="card-rank">3</div>
+          <div class="card-id">
+            <div class="card-ticker">CIFR</div>
+            <div class="card-name">Cipher Digital Inc. (fmr. Cipher Mining)</div>
+            <div class="card-tags">
+              <span class="tag ai">AI Hosting</span>
+              <span class="tag crypto">Ex-BTC Miner</span>
+            </div>
+          </div>
+          <div class="card-signal-badge">
+            <span class="signal-badge sb-dip">⬇ Buy the Dip</span>
+            <div class="price-tag">~$24<span class="cap">~$8–10B cap</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-label">Avg Target</div>
+              <div class="stat-val up">$31.60</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Bull Target (MS)</div>
+              <div class="stat-val up">$53.50</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Total Backlog</div>
+              <div class="stat-val">$11.4B / 600MW</div>
+            </div>
+          </div>
+
+          <div class="upside-bar-wrap">
+            <div class="upside-bar-label">
+              <span>$24 → avg target $31.60</span>
+              <span class="pct positive">+32% to avg · +123% to MS bull</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill positive" data-width="32"></div></div>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Thesis</div>
+            <p><strong>Key update:</strong> Renamed to Cipher Digital (Feb 2026). Bitcoin mining fully decommissioned. Now holds $11.4B in contracted AI hosting revenue across <strong>two anchor contracts</strong>: (1) 15-year, 300MW AWS lease at Black Pearl, Texas; (2) 10-year, 300MW Fluidstack (Alphabet-backed) lease at Barber Lake. Strong Buy consensus, Morgan Stanley at $53.50. <strong>Important correction from prior dashboard:</strong> first hyperscaler revenue is expected 2027, not Aug 2026 — 2026 is a build year.</p>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Key Catalysts</div>
+            <div class="catalyst-row">
+              <div class="catalyst-pill"><span class="dot"></span> Black Pearl energization / AWS rack delivery <span class="when">▸ H2 2026</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> First AI/HPC revenue recognition <span class="when">▸ 2027</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> Barber Lake (Fluidstack) ramp <span class="when">▸ 2027</span></div>
+            </div>
+          </div>
+
+          <div class="entry-zone dip-zone">
+            <div class="entry-zone-title">⬇ Entry Zone — Accumulate on Weakness</div>
+            <div class="entry-levels">
+              <span class="entry-pill">Ideal: $18–20</span>
+              <span class="entry-pill">Acceptable: $20–24</span>
+              <span class="entry-pill">Bull add: sub-$18</span>
+            </div>
+            <div class="entry-note">At $24, you're paying for an $11.4B backlog with no revenue yet — 2026 is pure build. <strong>Strong Buy consensus with $31.60 average target makes $20–22 compelling.</strong> The Morgan Stanley $53.50 target implies 2×+ from here if the build executes. Use broader crypto/AI selloffs as entry opportunities; the thesis doesn't depend on short-term catalysts.</div>
+          </div>
+
+          <div class="confidence-row">
+            <span class="conf-label">3× Confidence</span>
+            <div class="conf-pips">
+              <div class="pip filled med"></div><div class="pip filled med"></div>
+              <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+            </div>
+            <span class="conf-text">Medium — contracted revenue, zero execution track record</span>
+          </div>
+
+          <div class="kill-switch">
+            <div class="ks-title">Kill Switch</div>
+            <div class="ks-text">AWS or Fluidstack contract cancellation or timeline extension. Both contracts have delivery milestones with cancellation clauses. A rack delivery slip or hyperscaler capex cut could vaporize the forward revenue story.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 4 · NBIS ══════════════════════════════════════ -->
+      <div class="stock-card sig-wait fade-up">
+        <div class="card-header">
+          <div class="card-rank">4</div>
+          <div class="card-id">
+            <div class="card-ticker">NBIS</div>
+            <div class="card-name">Nebius Group N.V.</div>
+            <div class="card-tags">
+              <span class="tag cloud">AI Neocloud</span>
+              <span class="tag ai">GPU Cloud</span>
+            </div>
+          </div>
+          <div class="card-signal-badge">
+            <span class="signal-badge sb-wait">◈ Wait / Pullback</span>
+            <div class="price-tag">~$249<span class="cap">~$63B cap</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-label">Analyst Target</div>
+              <div class="stat-val warn">~$239</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Rev Growth</div>
+              <div class="stat-val up">+684% YoY</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">P/S (TTM)</div>
+              <div class="stat-val warn">~70×</div>
+            </div>
+          </div>
+
+          <div class="upside-bar-wrap">
+            <div class="upside-bar-label">
+              <span>$249 → avg target $239 (stock above consensus)</span>
+              <span class="pct negative">−4% to avg target</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill negative" data-width="20"></div></div>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Thesis</div>
+            <p>Real hypergrowth (+684% YoY revenue), genuine Nvidia blessing, and Microsoft + Bloom Energy backing make this the highest-quality neocloud. The problem: the market already knows all of it. At ~$249 the stock is <em>above</em> the analyst consensus target of ~$239. Up ~211% in 12 months, depreciation running ~66% of revenue, and ~70× sales. <strong>This is priced for perfection at current levels — you need a reset to get good risk/reward.</strong></p>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Key Catalysts</div>
+            <div class="catalyst-row">
+              <div class="catalyst-pill"><span class="dot"></span> Microsoft contract capacity ramp <span class="when">▸ ONGOING 2026</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> Bloom Energy power partnership <span class="when">▸ 2026–2027</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> Margin improvement as scale hits <span class="when">▸ 2027+</span></div>
+            </div>
+          </div>
+
+          <div class="entry-zone wait-zone">
+            <div class="entry-zone-title">◈ Entry Zone — Significant Pullback Required</div>
+            <div class="entry-levels">
+              <span class="entry-pill">Ideal: $160–180</span>
+              <span class="entry-pill">Acceptable: $180–210</span>
+              <span class="entry-pill">Watch only above $210</span>
+            </div>
+            <div class="entry-note">At $249, consensus is already below the price. <strong>The real entry window is a pullback to $160–180</strong> — roughly where a 30% drawdown lands. That would give you ~30–40% upside to consensus targets and genuine asymmetry on the bull case. High-beta growth names like this can correct 40–50% quickly on any AI capex sentiment shift.</div>
+          </div>
+
+          <div class="confidence-row">
+            <span class="conf-label">3× Confidence</span>
+            <div class="conf-pips">
+              <div class="pip filled low"></div><div class="pip filled low"></div>
+              <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+            </div>
+            <span class="conf-text">Low-Med — great company, wrong price right now</span>
+          </div>
+
+          <div class="kill-switch">
+            <div class="ks-title">Kill Switch</div>
+            <div class="ks-text">Contract delay or gross margin disappointment. Depreciation is already 66% of revenue — if revenue growth decelerates even slightly while capex stays high, losses expand and the ~70× sales multiple becomes untenable.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 5 · AMD ═══════════════════════════════════════ -->
+      <div class="stock-card sig-wait fade-up">
+        <div class="card-header">
+          <div class="card-rank">5</div>
+          <div class="card-id">
+            <div class="card-ticker">AMD</div>
+            <div class="card-name">Advanced Micro Devices</div>
+            <div class="card-tags">
+              <span class="tag ai">AI GPU</span>
+              <span class="tag ai">Data Center CPU</span>
+            </div>
+          </div>
+          <div class="card-signal-badge">
+            <span class="signal-badge sb-wait">◈ Wait / Pullback</span>
+            <div class="price-tag">~$542<span class="cap">~$885B cap</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-label">Avg Analyst Target</div>
+              <div class="stat-val warn">~$488</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Q1 Revenue</div>
+              <div class="stat-val">$10.3B (+38%)</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Data Center Rev</div>
+              <div class="stat-val up">$5.8B (+57%)</div>
+            </div>
+          </div>
+
+          <div class="upside-bar-wrap">
+            <div class="upside-bar-label">
+              <span>$542 → avg consensus $488 (stock above consensus)</span>
+              <span class="pct negative">−10% to avg · Barclays bull $665</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill negative" data-width="20"></div></div>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Thesis</div>
+            <p>Best-in-class business of the 8 — real earnings, real moat, #2 AI GPU with legitimate software (ROCm improving). Q1 2026 Data Center revenue hit $5.8B (+57% YoY). Meta deploying 1GW MI450, 5GW more planned; OpenAI "Helios" rack commitment active. Q2 guide of $11.2B (+46% YoY). <strong>The problem is math:</strong> at ~$885B cap, a 3× means ~$2.65T — a scale that implies AMD surpassing today's Nvidia entirely. That's a low-probability outcome, not an asymmetry.</p>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Key Catalysts</div>
+            <div class="catalyst-row">
+              <div class="catalyst-pill"><span class="dot"></span> MI450 "Helios" rack ramp <span class="when">▸ 2026</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> Meta 6GW + OpenAI deployments <span class="when">▸ 2026–2027</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> Q2 2026 earnings guide $11.2B <span class="when">▸ AUG 2026</span></div>
+            </div>
+          </div>
+
+          <div class="entry-zone wait-zone">
+            <div class="entry-zone-title">◈ Entry Zone — Wait for Consensus Alignment</div>
+            <div class="entry-levels">
+              <span class="entry-pill">Ideal: $430–470</span>
+              <span class="entry-pill">Acceptable: $470–510</span>
+              <span class="entry-pill">Avoid above $560</span>
+            </div>
+            <div class="entry-note"><strong>Average analyst target is ~$488 — 10% below current price.</strong> Only the Barclays bull case ($665) justifies current levels. Wait for AMD to retrace toward consensus (~$470–490) for a better entry. That still implies only a 1.3× to the Barclays bull target, not a 3×. Hold existing positions; initiating new at $542 is chasing.</div>
+          </div>
+
+          <div class="confidence-row">
+            <span class="conf-label">3× Confidence</span>
+            <div class="conf-pips">
+              <div class="pip filled low"></div><div class="pip"></div>
+              <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+            </div>
+            <span class="conf-text">Low — great company, 3× math requires $2.6T market cap</span>
+          </div>
+
+          <div class="kill-switch">
+            <div class="ks-title">Kill Switch</div>
+            <div class="ks-text">MI450 share-gain disappointment at next earnings, or Nvidia widening the CUDA software moat. If AMD's GPU revenue misses Q3 consensus estimates by &gt;15%, the premium re-rates sharply lower. ROCm adoption lag remains the structural threat.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 6 · MU ════════════════════════════════════════ -->
+      <div class="stock-card sig-dip fade-up">
+        <div class="card-header">
+          <div class="card-rank">6</div>
+          <div class="card-id">
+            <div class="card-ticker">MU</div>
+            <div class="card-name">Micron Technology</div>
+            <div class="card-tags">
+              <span class="tag mem">DRAM / HBM</span>
+              <span class="tag mem">Memory</span>
+            </div>
+          </div>
+          <div class="card-signal-badge">
+            <span class="signal-badge sb-dip">⬇ Wait for Dip</span>
+            <div class="price-tag">~$542<span class="cap">~$1.17T cap</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-label">Avg Target</div>
+              <div class="stat-val up">$709–852</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Q2 Revenue</div>
+              <div class="stat-val up">$23.9B (+196%)</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Gross Margin</div>
+              <div class="stat-val up">74.9%</div>
+            </div>
+          </div>
+
+          <div class="upside-bar-wrap">
+            <div class="upside-bar-label">
+              <span>$542 → avg target ~$730 (strong buy consensus)</span>
+              <span class="pct positive">+35% to avg · Strong Buy</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill positive" data-width="35"></div></div>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Thesis</div>
+            <p>Strong Buy consensus with a meaningful price-target gap — avg target ~$709–852 vs ~$542 current. Q2 revenue +196% YoY to $23.9B with a 74.9% gross margin. <strong>HBM sold out for multiple quarters ahead.</strong> HBM4 ramp on Nvidia Vera Rubin is the next cycle leg. The bear case is cyclicality — a NAND/DRAM oversupply move from Samsung or SK Hynix would compress margins fast. The 3× from here requires ~$3.5T cap — very unlikely, but a ~70–80% return to consensus is reasonable.</p>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Key Catalysts</div>
+            <div class="catalyst-row">
+              <div class="catalyst-pill"><span class="dot"></span> Q3 FY2026 Earnings <span class="when">▸ ~JUN 24, 2026</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> HBM4 / Vera Rubin platform ramp <span class="when">▸ H2 2026</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> DRAM pricing cycle update <span class="when">▸ ONGOING</span></div>
+            </div>
+          </div>
+
+          <div class="entry-zone dip-zone">
+            <div class="entry-zone-title">⬇ Entry Zone — Compelling on Weakness</div>
+            <div class="entry-levels">
+              <span class="entry-pill">Ideal: $460–490</span>
+              <span class="entry-pill">OK now: $490–542</span>
+              <span class="entry-pill">Key: Jun 24 earnings</span>
+            </div>
+            <div class="entry-note">MU is the only name in this set with a <strong>Strong Buy consensus AND a meaningful positive target gap</strong> (~35% upside to avg). The Jun 24 earnings report is a near-term catalyst — a beat could push toward $600+. <strong>Current $542 is an acceptable entry;</strong> add more on a dip toward $460–490. The cycle risk is real but HBM makes MU more structurally protected than prior cycles.</div>
+          </div>
+
+          <div class="confidence-row">
+            <span class="conf-label">3× Confidence</span>
+            <div class="conf-pips">
+              <div class="pip filled low"></div><div class="pip"></div>
+              <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+            </div>
+            <span class="conf-text">Low for 3× · Med-High for 35–80% return</span>
+          </div>
+
+          <div class="kill-switch">
+            <div class="ks-title">Kill Switch</div>
+            <div class="ks-text">DRAM or NAND price roll-over triggered by Samsung or SK Hynix supply expansion. Watch Samsung's quarterly capex announcements and spot DRAM pricing indices — those are leading indicators 2–3 quarters before it shows up in Micron's margins.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 7 · SNDK ══════════════════════════════════════ -->
+      <div class="stock-card sig-avoid fade-up">
+        <div class="card-header">
+          <div class="card-rank">7</div>
+          <div class="card-id">
+            <div class="card-ticker">SNDK</div>
+            <div class="card-name">SanDisk Corporation</div>
+            <div class="card-tags">
+              <span class="tag nand">NAND Storage</span>
+              <span class="tag ai">AI Storage</span>
+            </div>
+          </div>
+          <div class="card-signal-badge">
+            <span class="signal-badge sb-avoid">◌ Avoid / Watch</span>
+            <div class="price-tag">~$1,784<span class="cap">~$265B cap</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-label">YTD Return</div>
+              <div class="stat-val warn">+570%</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">1-Yr Return</div>
+              <div class="stat-val warn">+4,000%+</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Q3 Revenue</div>
+              <div class="stat-val">$5.95B (+251%)</div>
+            </div>
+          </div>
+
+          <div class="upside-bar-wrap">
+            <div class="upside-bar-label">
+              <span>Up from $36 → $1,784 in 12 months. Near all-time high $1,832.</span>
+              <span class="pct negative">Targets at/below price</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill negative" data-width="50"></div></div>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Thesis</div>
+            <p>The numbers are genuinely extraordinary: Q3 revenue +251% YoY to $5.95B, margins 78%, Q4 guided $7.75–8.25B, $42B backlog. <strong>The problem is entirely the price.</strong> The stock went from $36 to $1,784 in 12 months (+4,000%+). Nearly all the asymmetry has been captured. NAND is more commoditized than DRAM — the moat is thinner, and a Samsung oversupply move is the perennial risk. Buying here is momentum trading, not value investing.</p>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Key Catalysts</div>
+            <div class="catalyst-row">
+              <div class="catalyst-pill"><span class="dot"></span> Q4 FY2026 earnings guide $7.75–8.25B <span class="when">▸ Q3 2026</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> NAND pricing durability <span class="when">▸ ONGOING</span></div>
+            </div>
+          </div>
+
+          <div class="entry-zone wait-zone">
+            <div class="entry-zone-title">◌ Entry Zone — Only on Major Correction</div>
+            <div class="entry-levels">
+              <span class="entry-pill">Consider: sub-$1,000</span>
+              <span class="entry-pill">Interesting: sub-$800</span>
+              <span class="entry-pill">Do not chase above $1,800</span>
+            </div>
+            <div class="entry-note"><strong>Do not initiate here.</strong> A 50% correction from peak would bring SNDK to ~$900 — still a parabolic stock. Only if NAND pricing holds and margin durability is confirmed for 2–3 more quarters does a new entry make sense. A Samsung supply decision or hyperscaler storage capex pause could cut this 40–60% before the story changes.</div>
+          </div>
+
+          <div class="confidence-row">
+            <span class="conf-label">3× Confidence</span>
+            <div class="conf-pips">
+              <div class="pip filled low"></div><div class="pip"></div>
+              <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+            </div>
+            <span class="conf-text">Very Low — 3× math requires ~$800B cap from here</span>
+          </div>
+
+          <div class="kill-switch">
+            <div class="ks-title">Kill Switch</div>
+            <div class="ks-text">Samsung or SK Hynix announces meaningful NAND capacity expansion. NAND is structurally more commoditized than DRAM — the current pricing supercycle ends faster than the bull case assumes. Watch Samsung quarterly capex disclosures.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 8 · BE ═════════════════════════════════════════ -->
+      <div class="stock-card sig-avoid fade-up">
+        <div class="card-header">
+          <div class="card-rank">8</div>
+          <div class="card-id">
+            <div class="card-ticker">BE</div>
+            <div class="card-name">Bloom Energy</div>
+            <div class="card-tags">
+              <span class="tag power">Fuel Cells</span>
+              <span class="tag ai">Datacenter Power</span>
+            </div>
+          </div>
+          <div class="card-signal-badge">
+            <span class="signal-badge sb-avoid">◌ Avoid / Watch</span>
+            <div class="price-tag">~$287<span class="cap">~$82B cap</span></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-label">Analyst Target</div>
+              <div class="stat-val warn">Near current</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Q1 Revenue</div>
+              <div class="stat-val up">$751M (+130%)</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">52-Week Range</div>
+              <div class="stat-val warn">$19.97–$322.83</div>
+            </div>
+          </div>
+
+          <div class="upside-bar-wrap">
+            <div class="upside-bar-label">
+              <span>Up 14× from 52-week lows. Near 52-week high of $322.</span>
+              <span class="pct negative">Priced-in — euphoric valuation</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill negative" data-width="40"></div></div>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Thesis</div>
+            <p>Real business — solid-oxide fuel cells for AI data centers, Q1 revenue +130% YoY, Oracle ~2.8GW deal, multiple hyperscaler agreements. <strong>The valuation has already absorbed the AI power narrative fully.</strong> At ~$287 the stock sits near its 52-week high of $323, and is up 14× from its lows. ~27× sales and ~149× non-GAAP EPS. The boom is in the price. Grid alternatives (gas turbines, GE Vernova) remain competitive threats at scale.</p>
+          </div>
+
+          <div class="card-section">
+            <div class="card-section-title">Key Catalysts</div>
+            <div class="catalyst-row">
+              <div class="catalyst-pill"><span class="dot"></span> Additional hyperscaler power deals <span class="when">▸ 2026</span></div>
+              <div class="catalyst-pill"><span class="dot"></span> Oracle 2.8GW ramp confirmation <span class="when">▸ H2 2026</span></div>
+            </div>
+          </div>
+
+          <div class="entry-zone wait-zone">
+            <div class="entry-zone-title">◌ Entry Zone — Needs Major Reset</div>
+            <div class="entry-levels">
+              <span class="entry-pill">Interesting: $180–200</span>
+              <span class="entry-pill">Compelling: sub-$160</span>
+              <span class="entry-pill">Do not add near $300</span>
+            </div>
+            <div class="entry-note"><strong>Avoid initiating near current levels.</strong> The AI power story is consensus. A pullback to $180–200 would still represent a massive premium to pre-AI levels (~$20) but would at least offer a reasonable risk/reward on continued deal flow. At ~27× sales, one deal delay or margin miss compresses the multiple fast.</div>
+          </div>
+
+          <div class="confidence-row">
+            <span class="conf-label">3× Confidence</span>
+            <div class="conf-pips">
+              <div class="pip filled low"></div><div class="pip"></div>
+              <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+            </div>
+            <span class="conf-text">Very Low — narrative fully priced at ~27× sales</span>
+          </div>
+
+          <div class="kill-switch">
+            <div class="ks-title">Kill Switch</div>
+            <div class="ks-text">Deal cadence slows or margins disappoint. If hyperscaler power demand finds alternatives (grid, GE Vernova turbines) or if Bloom's fuel cell economics don't scale cleanly to multi-GW orders, the premium collapses rapidly from 27× sales.</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /cards-grid -->
+  </div><!-- /section -->
+
+  <!-- VALUATION TABLE -->
+  <div id="valuation" class="section">
+    <div class="section-label">Relative Valuation</div>
+    <h2 class="section-title">Multiples Compared</h2>
+    <p class="section-desc">Point-in-time data, June 2026. Many cells are estimates — parabolic moves make traditional multiples unreliable for the AI-infrastructure names. Treat as directional, not precise. Value/Growth Score = P/S TTM ÷ YoY rev growth % — lower is better.</p>
+
+    <div class="val-table-wrap">
+      <div class="val-scroller">
+        <table class="val-table">
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Price</th>
+              <th>Mkt Cap</th>
+              <th>P/S TTM</th>
+              <th>P/S Fwd</th>
+              <th>EV/EBITDA</th>
+              <th>Gross Margin</th>
+              <th>YoY Rev Growth</th>
+              <th>V/G Score</th>
+              <th>Signal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="vt-ticker">IREN</div><div class="vt-sector">AI Cloud</div></td>
+              <td class="vt-num">~$57</td>
+              <td class="vt-num">~$13B</td>
+              <td class="vt-num vt-warn">High (ARR-based)</td>
+              <td class="vt-num vt-good">Low (contracted)</td>
+              <td class="vt-nm">N/M (loss)</td>
+              <td class="vt-num">High (AI cloud)</td>
+              <td class="vt-num vt-good">Mining → AI ramp</td>
+              <td class="vt-nm">N/M</td>
+              <td><span class="vs-badge vs-good">Add Now</span></td>
+            </tr>
+            <tr>
+              <td><div class="vt-ticker">FLNC</div><div class="vt-sector">Energy Storage</div></td>
+              <td class="vt-num">~$19</td>
+              <td class="vt-num">~$3.7B</td>
+              <td class="vt-num vt-good">~1.1×</td>
+              <td class="vt-num vt-good">~0.9× (if guide hits)</td>
+              <td class="vt-nm">Neg EBITDA</td>
+              <td class="vt-num vt-warn">~11%</td>
+              <td class="vt-num">+8% YoY (miss)</td>
+              <td class="vt-num vt-good">~0.14</td>
+              <td><span class="vs-badge vs-mid">Buy Dip</span></td>
+            </tr>
+            <tr>
+              <td><div class="vt-ticker">CIFR</div><div class="vt-sector">AI Hosting</div></td>
+              <td class="vt-num">~$24</td>
+              <td class="vt-num">~$9B</td>
+              <td class="vt-nm">N/M (no rev yet)</td>
+              <td class="vt-num vt-good">Low (contracted)</td>
+              <td class="vt-nm">N/M (pre-rev)</td>
+              <td class="vt-nm">N/M</td>
+              <td class="vt-nm">Mining → zero</td>
+              <td class="vt-nm">N/M</td>
+              <td><span class="vs-badge vs-mid">Buy Dip</span></td>
+            </tr>
+            <tr>
+              <td><div class="vt-ticker">NBIS</div><div class="vt-sector">AI Neocloud</div></td>
+              <td class="vt-num">~$249</td>
+              <td class="vt-num">~$63B</td>
+              <td class="vt-num vt-warn">~70×</td>
+              <td class="vt-num vt-warn">~15–20× (est.)</td>
+              <td class="vt-nm">Neg (high depr.)</td>
+              <td class="vt-num vt-good">~50% (est.)</td>
+              <td class="vt-num vt-good">+684%</td>
+              <td class="vt-num vt-good">~0.10</td>
+              <td><span class="vs-badge vs-poor">Wait</span></td>
+            </tr>
+            <tr>
+              <td><div class="vt-ticker">AMD</div><div class="vt-sector">AI GPU / CPU</div></td>
+              <td class="vt-num">~$542</td>
+              <td class="vt-num">~$885B</td>
+              <td class="vt-num vt-warn">~21×</td>
+              <td class="vt-num vt-warn">~16×</td>
+              <td class="vt-num vt-warn">~45×+</td>
+              <td class="vt-num vt-good">~50%</td>
+              <td class="vt-num vt-good">+38%</td>
+              <td class="vt-num vt-warn">~0.55</td>
+              <td><span class="vs-badge vs-poor">Wait</span></td>
+            </tr>
+            <tr>
+              <td><div class="vt-ticker">MU</div><div class="vt-sector">DRAM / HBM</div></td>
+              <td class="vt-num">~$542</td>
+              <td class="vt-num">~$1.17T</td>
+              <td class="vt-num vt-good">~12×</td>
+              <td class="vt-num vt-good">~8×</td>
+              <td class="vt-num vt-good">~8–10×</td>
+              <td class="vt-num vt-good">74.9%</td>
+              <td class="vt-num vt-good">+196%</td>
+              <td class="vt-num vt-good">~0.06</td>
+              <td><span class="vs-badge vs-mid">Buy Dip</span></td>
+            </tr>
+            <tr>
+              <td><div class="vt-ticker">SNDK</div><div class="vt-sector">NAND Storage</div></td>
+              <td class="vt-num">~$1,784</td>
+              <td class="vt-num">~$265B</td>
+              <td class="vt-num vt-warn">~20×+</td>
+              <td class="vt-num vt-warn">~10× (est.)</td>
+              <td class="vt-nm">Est. 15–20×</td>
+              <td class="vt-num">~78%</td>
+              <td class="vt-num vt-good">+251%</td>
+              <td class="vt-num vt-warn">~0.08</td>
+              <td><span class="vs-badge vs-poor">Avoid</span></td>
+            </tr>
+            <tr>
+              <td><div class="vt-ticker">BE</div><div class="vt-sector">Fuel Cells</div></td>
+              <td class="vt-num">~$287</td>
+              <td class="vt-num">~$82B</td>
+              <td class="vt-num vt-bad">~27×</td>
+              <td class="vt-num vt-warn">~22×</td>
+              <td class="vt-num vt-bad">~149× EPS</td>
+              <td class="vt-num vt-warn">~28%</td>
+              <td class="vt-num vt-good">+130%</td>
+              <td class="vt-num vt-warn">~0.21</td>
+              <td><span class="vs-badge vs-poor">Avoid</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="howto-grid">
+      <div class="howto-card">
+        <h3>Why V/G Score ≠ everything</h3>
+        <p>For IREN/CIFR/NBIS, the score is meaningless — enormous P/S divided by triple-digit growth off a near-zero base. MU's 0.06 is the most meaningful in the set; FLNC's 0.14 is clean but undercut by 11% gross margin.</p>
+      </div>
+      <div class="howto-card">
+        <h3>Why rank ≠ quality</h3>
+        <p>AMD and MU are the best businesses here. They rank mid/low because their size makes the 3× math implausible. The rank measures <em>remaining</em> risk-adjusted upside, not company quality or safety.</p>
+      </div>
+      <div class="howto-card">
+        <h3>The "Avoid" signal</h3>
+        <p>Avoid doesn't mean sell — it means don't initiate a new position at current prices. If you own SNDK or BE from lower, that's a different question. The signal applies to fresh capital only.</p>
+      </div>
+      <div class="howto-card">
+        <h3>What changed since last version</h3>
+        <p>CIFR renamed to Cipher Digital; first HPC revenue moved to 2027 (was Aug 2026). IREN added a new NVIDIA $3.4B contract raising ARR target to $4.4B. SNDK up 4,000%+ in a year, not 560%. MU up 200%+ in 2026.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MACRO -->
+  <div id="macro" class="section">
+    <div class="macro-panel">
+      <div class="section-label">Macro Risk</div>
+      <h2 class="section-title">The one bet underneath all eight</h2>
+      <p class="section-desc">These are not eight independent positions. They are roughly <strong>one AI-capex bet made eight ways</strong>. If any of the three pillars below cracks, most of the list falls together.</p>
+      <div class="macro-items">
+        <div class="macro-item fade-up">
+          <div class="macro-num">01</div>
+          <h3>Hyperscaler capex keeps climbing</h3>
+          <p>2026 combined hyperscaler capex guidance sits above ~$500B. Every name here — compute, memory, neocloud, power, storage — lives or dies on that number. A capex cut hits all eight simultaneously. This is the single most important variable to track.</p>
+        </div>
+        <div class="macro-item fade-up">
+          <div class="macro-num">02</div>
+          <h3>Memory cycle doesn't roll over</h3>
+          <p>MU, SNDK, and AMD's margins need tight supply. A NAND/DRAM oversupply move from Samsung or SK Hynix would break the memory trade. Samsung's quarterly capex announcements are the leading indicator — watch them.</p>
+        </div>
+        <div class="macro-item fade-up">
+          <div class="macro-num">03</div>
+          <h3>Risk appetite and financing stay open</h3>
+          <p>IREN, CIFR, NBIS, FLNC, and BE are all capital-hungry and several are leveraged. A credit tightening, rate spike, or risk-off rotation compresses the whole high-beta complex simultaneously — even if the AI capex story stays intact.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<div class="wrap">
+  <footer>
+    <strong>Data sources:</strong> Company filings (SEC EDGAR), Yahoo Finance, StockAnalysis, MarketBeat, TipRanks, TradingKey, Seeking Alpha, CNBC, Futurum Research, Investing.com, TIKR, Motley Fool — June 2026.<br>
+    <strong>Corrections from prior version:</strong> CIFR renamed to Cipher Digital Inc. (Feb 2026); first hyperscaler revenue expected 2027 (not Aug 2026). IREN raised ARR target to $4.4B via new NVIDIA Blackwell contract. SNDK up 4,000%+ in 12 months. MU up 200%+ in 2026. FLNC down 10% on June 4 revenue miss.<br>
+    <strong>Estimates flagged:</strong> Several cells (esp. IREN, CIFR forward P/S; NBIS EV/EBITDA) are estimates or not-meaningful due to parabolic moves or pre-revenue status.<br><br>
+    <strong>Not investment advice.</strong> Informational synthesis only — not a recommendation to buy, sell, or hold any security. High-volatility names can fall 50%+ on a single catalyst miss. Do your own due diligence and consider consulting a licensed financial advisor before acting.
+  </footer>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  CONFIG — paste your free Finnhub key here (finnhub.io/register)
+//  Once set, everyone who opens this link gets live prices.
+//  Leave blank to use the per-browser key prompt instead.
+// ═══════════════════════════════════════════════════════════════
+const FINNHUB_KEY = 'd8hehu1r01qgcfbpdgo0d8hehu1r01qgcfbpdgog';
+// ═══════════════════════════════════════════════════════════════
+
+const TICKERS     = ['IREN','FLNC','CIFR','NBIS','AMD','MU','SNDK','BE'];
+const STORAGE_KEY = 'catalystboard_apikey';
+let   lastFetch   = null;
+
+// ── Key management ───────────────────────────────────────────────
+function getKey()    { return FINNHUB_KEY.trim() || localStorage.getItem(STORAGE_KEY) || ''; }
+function showModal() {
+  document.getElementById('apikey-modal').classList.add('show');
+  setTimeout(() => document.getElementById('apikey-input')?.focus(), 300);
+}
+function hideModal() { document.getElementById('apikey-modal').classList.remove('show'); }
+
+function saveApiKey() {
+  const val = (document.getElementById('apikey-input')?.value || '').trim();
+  if (!val) return;
+  localStorage.setItem(STORAGE_KEY, val);
+  document.getElementById('modal-error').classList.remove('show');
+  hideModal();
+  fetchLiveData();
+}
+function resetApiKey() {
+  if (!FINNHUB_KEY.trim()) {        // only allow reset when no hardcoded key
+    localStorage.removeItem(STORAGE_KEY);
+    document.getElementById('apikey-input').value = '';
+    showModal();
+  }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────
+function fmtPrice(p) {
+  if (p == null || p === 0) return '—';
+  if (p >= 1000) return '$' + p.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  return '$' + p.toFixed(2);
+}
+function fmtCap(c) {
+  if (!c) return '—';
+  if (c >= 1e12) return '$' + (c / 1e12).toFixed(2) + 'T';
+  if (c >= 1e9)  return '$' + (c / 1e9).toFixed(1)  + 'B';
+  return '$' + (c / 1e6).toFixed(0) + 'M';
+}
+function fmtAgo(ms) {
+  const s = Math.floor(ms / 1000);
+  return s < 60 ? s + 's ago' : Math.floor(s / 60) + 'm ago';
+}
+function setStatus(state, msg) {
+  const dot = document.getElementById('live-dot');
+  const lbl = document.getElementById('live-label');
+  if (!dot || !lbl) return;
+  dot.className = 'live-dot' + (state !== 'live' ? ' ' + state : '');
+  lbl.className  = state !== 'live' ? state : '';
+  lbl.textContent = msg;
+}
+
+async function timedFetch(url, ms = 9000) {
+  const ctrl = new AbortController();
+  const id   = setTimeout(() => ctrl.abort(), ms);
+  try   { const r = await fetch(url, {signal: ctrl.signal}); clearTimeout(id); return r; }
+  catch (e) { clearTimeout(id); throw e; }
+}
+
+// ── Finnhub: fetch all tickers in parallel ───────────────────────
+async function fetchAll(key) {
+  const settled = await Promise.allSettled(
+    TICKERS.map(async ticker => {
+      const res = await timedFetch(`https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${key}`);
+      if (res.status === 401 || res.status === 403) throw new Error('AUTH');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const d = await res.json();
+      if (!d.c) throw new Error('no data for ' + ticker);
+      // d.c = current, d.dp = day change %, d.d = day change $
+      return { ticker, price: d.c, chgPct: d.dp || 0, chgDollar: d.d || 0 };
+    })
+  );
+  if (settled.some(r => r.reason?.message === 'AUTH')) throw new Error('AUTH');
+  const ok = settled.filter(r => r.status === 'fulfilled').map(r => r.value);
+  if (!ok.length) throw new Error('no results');
+  return ok;
+}
+
+// ── DOM update ───────────────────────────────────────────────────
+function updateCard(q) {
+  const { ticker, price, chgPct, chgDollar } = q;
+  const cls   = chgPct > 0.05 ? 'chg-up' : chgPct < -0.05 ? 'chg-down' : 'chg-flat';
+  const arrow = chgPct > 0.05 ? '▲' : chgPct < -0.05 ? '▼' : '—';
+  const sign  = chgPct > 0 ? '+' : '';
+  const chgD  = chgDollar >= 0 ? '+$' + chgDollar.toFixed(2) : '-$' + Math.abs(chgDollar).toFixed(2);
+
+  // Stock cards
+  document.querySelectorAll('.stock-card').forEach(card => {
+    if (card.querySelector('.card-ticker')?.textContent.trim() !== ticker) return;
+    const el = card.querySelector('.price-tag');
+    if (!el) return;
+    el.innerHTML = fmtPrice(price)
+      + `<span class="live-change ${cls}">${arrow} ${sign}${chgPct.toFixed(2)}% &nbsp;(${chgD})</span>`
+      + `<span class="cap" id="cap-${ticker}"></span>`;
+    el.classList.add('price-updated');
+    setTimeout(() => el.classList.remove('price-updated'), 900);
+  });
+
+  // Valuation table — price column only (cap stays static)
+  document.querySelectorAll('.val-table tbody tr').forEach(tr => {
+    if (tr.querySelector('.vt-ticker')?.textContent.trim() !== ticker) return;
+    const cells = tr.querySelectorAll('.vt-num');
+    if (cells[0]) cells[0].textContent = fmtPrice(price);
+  });
+}
+
+// ── Main fetch ───────────────────────────────────────────────────
+async function fetchLiveData() {
+  const key = getKey();
+  if (!key) { showModal(); return; }
+
+  setStatus('loading', 'Fetching live prices…');
+  try {
+    const data = await fetchAll(key);
+    data.forEach(updateCard);
+    lastFetch = Date.now();
+    const n = data.length;
+    setStatus('live', `● Live — Finnhub  (${n}/${TICKERS.length} stocks)`);
+    const t = document.getElementById('live-time');
+    if (t) t.textContent = 'Updated just now';
+  } catch (err) {
+    if (err.message === 'AUTH') {
+      localStorage.removeItem(STORAGE_KEY);
+      document.getElementById('modal-error').classList.add('show');
+      showModal();
+      setStatus('error', 'Invalid API key');
+    } else {
+      setStatus('error', 'Fetch failed — click Refresh to retry');
+    }
+    console.warn('Live data error:', err);
+  }
+}
+
+// Tick timestamp every 15s
+setInterval(() => {
+  if (!lastFetch) return;
+  const t = document.getElementById('live-time');
+  if (t) t.textContent = 'Updated ' + fmtAgo(Date.now() - lastFetch);
+}, 15000);
+
+// Auto-refresh every 90s
+setInterval(fetchLiveData, 90000);
+
+// ═══════════════════════════════════════════════
+//  ANIMATIONS
+// ═══════════════════════════════════════════════
+const fadeEls = document.querySelectorAll('.fade-up');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      entry.target.querySelectorAll('.bar-fill[data-width]').forEach(bar => {
+        bar.style.width = Math.min(parseInt(bar.dataset.width, 10), 100) + '%';
+      });
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.08 });
+fadeEls.forEach(el => observer.observe(el));
+
+document.querySelectorAll('.bar-fill[data-width]').forEach(bar => {
+  if (!bar.closest('.fade-up')) {
+    bar.style.width = Math.min(parseInt(bar.dataset.width, 10), 100) + '%';
+  }
+});
+
+// ─── Nav scroll highlight ────────────────────
+const navLinks = document.querySelectorAll('.nav-links a');
+const navObs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const id = entry.target.id;
+    navLinks.forEach(link => {
+      const active = link.getAttribute('href') === '#' + id;
+      link.style.borderBottomColor = active ? 'var(--blue)' : 'transparent';
+      link.style.color = active ? 'var(--ink)' : '';
+    });
+  });
+}, { rootMargin: '-30% 0px -65% 0px' });
+document.querySelectorAll('[id]').forEach(s => navObs.observe(s));
+
+// ─── Card tilt on hover ───────────────────────
+document.querySelectorAll('.stock-card').forEach(card => {
+  card.addEventListener('mousemove', (e) => {
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width  - 0.5;
+    const y = (e.clientY - rect.top)  / rect.height - 0.5;
+    card.style.transform = `translateY(-4px) rotateX(${-y*3}deg) rotateY(${x*3}deg)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+    card.style.transition = 'transform .5s ease';
+    setTimeout(() => card.style.transition = '', 500);
+  });
+});
+
+// ─── Kick off live data on load ───────────────
+fetchLiveData();
+</script>
+</body>
+</html>
