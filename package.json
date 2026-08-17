@@ -1,0 +1,18 @@
+{
+  "name": "college-algebra-unit2",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Practice generator for OpenStax College Algebra 2e, sections 2.1, 2.2, 2.4 and 2.5",
+  "scripts": {
+    "test": "node tests/audit.js 500 && node tests/pairing.js && node tests/sabotage.js && node tests/selftest.js 300 && node tests/parser.js",
+    "audit": "node tests/audit.js 500",
+    "pairing": "node tests/pairing.js",
+    "sabotage": "node tests/sabotage.js",
+    "ui": "node tests/ui.js",
+    "concepts": "node tests/concepts.js",
+    "setup": "npm install -D playwright && npx playwright install chromium"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
+  }
+}
