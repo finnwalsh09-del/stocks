@@ -2592,8 +2592,22 @@ function pickWeighted(pool, n, smart){
 }
 function buildQuestion(topic){
   let q = null;
-  for(let attempt = 0; attempt < 12 && !q; attempt++){
+  // some generators reject parameter draws that would make a degenerate problem
+  // (a common factor, two equal roots); give them plenty of room to redraw
+  for(let attempt = 0; attempt < 80 && !q; attempt++){
     try { q = topic.make(); } catch(e){ q = null; }
+  }
+  if(!q){
+    // never let one unlucky generator kill a study session — fall back to a
+    // sibling topic from the same section
+    const sibs = TOPICS.filter(function(t){ return t.sec === topic.sec && t.id !== topic.id; });
+    for(let k = 0; k < sibs.length && !q; k++){
+      const alt = sibs[R.i(0, sibs.length-1)];
+      for(let attempt = 0; attempt < 20 && !q; attempt++){
+        try { q = alt.make(); } catch(e){ q = null; }
+      }
+      if(q) topic = alt;
+    }
   }
   if(!q) throw new Error("generator failed: " + topic.id);
   q.topic = topic.id;
