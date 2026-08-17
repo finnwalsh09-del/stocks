@@ -1318,7 +1318,7 @@ T({ id:"linear-fractions", sec:"2.2", name:"Equations with fractions", make:func
 T({ id:"classify-eq", sec:"2.2", name:"Identity, conditional, or no solution", make:function(){
   const type = R.pick(["cond","cond","none","all"]);
   let lhs, rhs, ans, steps;
-  const ALL = "All real numbers — it is an identity", NONE = "No solution", a = R.nz(2,6), b = R.i(-9,9);
+  const ALL = "All real numbers — it is an identity", NONE = "No solution", a = R.nz(2,6), b = R.nz(-9,9);
   if(type === "all"){
     lhs = coefT(a, "(" + X + pm(b) + ")");
     rhs = coefT(a, X) + pm(a*b);
@@ -1341,12 +1341,12 @@ T({ id:"classify-eq", sec:"2.2", name:"Identity, conditional, or no solution", m
       "A false statement means <b>no solution</b>: no value of " + X + " can ever work."
     ];
   } else {
-    const s = R.i(-7,7);
+    const s = R.nz(-7,7);
     let d = R.nz(-6,6);
     while(d === a) d = R.nz(-6,6);
-    const c = d*s + b - a*s;
-    lhs = coefT(a, X) + pm(b);
-    rhs = coefT(d, X) + pm(c);
+    const c = a*s + b - d*s;          // ax + b = dx + c holds at x = s
+    lhs = coefT(a, X) + (b === 0 ? "" : pm(b));
+    rhs = coefT(d, X) + (c === 0 ? "" : pm(c));
     ans = "Exactly one solution: x = " + nn(s);
     steps = [
       "Collect the " + X + " terms: " + E(coefT(a-d, X) + " = " + nn(c-b)) + ".",
@@ -1625,7 +1625,7 @@ T({ id:"hv-lines", sec:"2.2", name:"Horizontal & vertical lines", make:function(
 T({ id:"concept-22", sec:"2.2", name:"Linear equation concepts", make:function(){
   const bank = [
     { q:"What does it mean for two lines to be perpendicular?",
-      a:"They intersect at a right angle, and their slopes are negative reciprocals (m₁ · m₂ = " + MINUS + "1).",
+      a:"They intersect at a right angle; unless one is vertical, their slopes are negative reciprocals (m₁ · m₂ = " + MINUS + "1).",
       w:["They never intersect, no matter how far they are extended.",
          "They have the same slope but different y-intercepts.",
          "They have slopes that are reciprocals of each other, with the same sign."],
@@ -1891,7 +1891,7 @@ T({ id:"concept-24", sec:"2.4", name:"Complex number concepts", make:function(){
     { q:"What is the basic principle that makes multiplication of complex numbers work?",
       a:"Multiply them like binomials (FOIL), then replace i² with " + MINUS + "1.",
       w:["Multiply the real parts together and the imaginary parts together.",
-         "Multiply the moduli and add the arguments, then convert back.",
+         "Add the real parts and multiply only the imaginary parts.",
          "Multiply the first terms and ignore the imaginary parts until the end."],
       s:["A complex number " + E("a + b<i>i</i>") + " is a binomial, so all four products appear.",
          "The only extra rule is the definition " + E("<i>i</i>² = " + MINUS + "1") + ".",
@@ -2330,9 +2330,9 @@ T({ id:"concept-25", sec:"2.5", name:"Quadratic concepts", make:function(){
   const bank = [
     { q:"When solving a quadratic by factoring, why must all terms be moved to one side so the other side is zero?",
       a:"Because the zero-product property only applies when a product equals zero.",
-      w:["Because the quadratic formula requires the equation to equal zero.",
+      w:["Because a quadratic must always have its constant term on the right.",
          "Because otherwise the equation is not really quadratic.",
-         "Because factoring is impossible unless the constant term is on the right."],
+         "Because factoring is impossible when the leading coefficient is not 1."],
       s:["The zero-product property says: if " + E("AB = 0") + " then " + E("A = 0") + " or " + E("B = 0") + ".",
          "There is no equivalent rule for " + E("AB = 6") + " — many pairs multiply to 6, so you learn nothing about the factors.",
          "That is why standard form " + E("ax² + bx + c = 0") + " comes first."] },
@@ -3345,11 +3345,13 @@ function viewProgress(){
 }
 
 /* ---------- print ---------- */
+let lastPrintSet = null;
 function viewPrint(){
   const root = el("div", "stack");
   root.style.paddingTop = "18px";
   const n = 20;
   const picks = pickWeighted(poolFor(["2.1","2.2","2.4","2.5"]), n, false).map(buildQuestion);
+  lastPrintSet = picks;
   const bar = el("div", "row noprint");
   const p = el("button", "btn primary", "Print / save as PDF");
   p.type = "button";
@@ -3449,6 +3451,478 @@ load();
 if(store.theme) document.documentElement.setAttribute("data-theme", store.theme);
 if(!store.testAt) store.testAt = defaultTestAt();
 render();
+
+/* ============================================================
+   AUDIT — verify each stated answer against the *rendered prompt*,
+   never against the numbers the generator used to build it.
+   ============================================================ */
+/* rendered prompt HTML -> parseable math text */
+function promptToMath(html){
+  let t = String(html || "");
+  // stacked fractions -> ((num)/(den))
+  for(let pass = 0; pass < 6; pass++){
+    t = t.replace(/<span class=['"]fr['"]><span>(.*?)<\/span><span>(.*?)<\/span><\/span>/g, "(($1)/($2))");
+  }
+  t = t.replace(/√<span class=['"]rc['"]>(.*?)<\/span>/g, "sqrt($1)");
+  t = t.replace(/<sup>(\d+)<\/sup>/g, "^$1");
+  t = t.replace(/<[^>]+>/g, "");
+  t = t.replace(/&nbsp;/g, " ").replace(/&minus;/g, "−").replace(/&amp;/g, "&");
+  return t.trim();
+}
+/* pull out each <span class="expr"> … </span> (balanced), as math text.
+   Every generator wraps its mathematics in E(), so this recovers exactly what
+   the student sees — no generator internals involved. */
+function exprsIn(html){
+  const s = String(html || ""), out = [], open = '<span class="expr">';
+  let i = 0;
+  for(;;){
+    const at = s.indexOf(open, i);
+    if(at < 0) break;
+    let j = at + open.length, depth = 1;
+    while(j < s.length && depth > 0){
+      const no = s.indexOf("<span", j), nc = s.indexOf("</span>", j);
+      if(nc < 0) break;
+      if(no >= 0 && no < nc){ depth++; j = no + 5; }
+      else { depth--; j = nc + 7; }
+    }
+    out.push(promptToMath(s.slice(at + open.length, j - 7)));
+    i = j;
+  }
+  return out;
+}
+function eqExpr(html){
+  const all = exprsIn(html);
+  for(let k = 0; k < all.length; k++){ if(all[k].indexOf("=") > 0) return all[k]; }
+  return null;
+}
+/* the math payload of a prompt: after the last colon, before a trailing period */
+function mathPart(text){
+  let t = text;
+  const c = t.lastIndexOf(":");
+  if(c >= 0) t = t.slice(c+1);
+  t = t.replace(/\.\s*$/, "").trim();
+  return t;
+}
+/* f(x) = LHS − RHS of an equation string, evaluated at a complex x */
+function eqFn(eqText){
+  const parts = eqText.split("=");
+  if(parts.length !== 2) return null;
+  return function(xv){
+    const L = evalExpr(pre(parts[0]), { x: xv }), Rr = evalExpr(pre(parts[1]), { x: xv });
+    return cSub(L, Rr);
+  };
+}
+function eqFnC(eqText){                       // complex-capable substitution
+  const parts = eqText.split("=");
+  if(parts.length !== 2) return null;
+  return function(z){
+    const env = { x: 0 };
+    const sub = function(src){
+      // evaluate with x replaced by a complex value: rewrite x as (a+bi)
+      const rep = "(" + z.re + (z.im < 0 ? "-" : "+") + Math.abs(z.im) + "i)";
+      return evalExpr(pre(src).replace(/x/g, rep), env);
+    };
+    return cSub(sub(parts[0]), sub(parts[1]));
+  };
+}
+/* recover polynomial coefficients (degree <= 2) of a real function by sampling */
+function polyCoeffs(f){
+  const y0 = f(0).re, y1 = f(1).re, ym = f(-1).re, y2 = f(2).re;
+  const c = y0;
+  const a = (y1 + ym - 2*y0) / 2;
+  const b = (y1 - ym) / 2;
+  if(Math.abs((4*a + 2*b + c) - y2) > 1e-6) return null;   // not quadratic
+  return { a:a, b:b, c:c };
+}
+function rootsOf(co){
+  if(Math.abs(co.a) < 1e-9){
+    if(Math.abs(co.b) < 1e-9) return Math.abs(co.c) < 1e-9 ? "all" : "none";
+    return [C(-co.c/co.b, 0)];
+  }
+  const D = co.b*co.b - 4*co.a*co.c;
+  const sq = cSqrt(C(D,0));
+  const r1 = cDiv(cAdd(C(-co.b,0), sq), C(2*co.a,0));
+  const r2 = cDiv(cSub(C(-co.b,0), sq), C(2*co.a,0));
+  return cEq(r1, r2, 1e-9) ? [r1] : [r1, r2];
+}
+function numsIn(text){
+  const out = [], re = /−?\s*\d+(?:\.\d+)?(?:\/\d+)?/g;
+  let m;
+  while((m = re.exec(text)) !== null) out.push(parseFloat(m[0].replace(/−/g, "-").replace(/\s+/g, "")));
+  return out;
+}
+function pointsIn(text){
+  const out = [], re = /\(\s*(−?\d+(?:\.\d+)?)\s*,\s*(−?\d+(?:\.\d+)?)\s*\)/g;
+  let m;
+  while((m = re.exec(text)) !== null){
+    out.push([parseFloat(m[1].replace(/−/g,"-")), parseFloat(m[2].replace(/−/g,"-"))]);
+  }
+  return out;
+}
+const NEAR = function(a,b,t){ return Math.abs(a-b) <= (t || 1e-6); };
+
+/* per-topic verifiers: return true (ok), false (mismatch), or null (not checkable) */
+const AUDIT = {};
+/* every claimed root satisfies the printed equation, and the root set is complete */
+function auditEquation(q){
+  const text = eqExpr(q.prompt) || mathPart(promptToMath(q.prompt));
+  const f = eqFnC(text);
+  if(!f) return null;
+  const claimed = q.vals;
+  let co = null;
+  try { co = polyCoeffs(eqFn(text)); } catch(e){ co = null; }
+  if(claimed === null || claimed === undefined){          // "no solution" answers
+    if(!co) return null;
+    return rootsOf(co) === "none";
+  }
+  // an answer the question asked to be *rounded* cannot satisfy the equation exactly;
+  // allow a residual proportional to the rounding and the local slope
+  const roundTo = (q.tol && q.tol > 1e-4) ? q.tol : 0;
+  for(let k = 0; k < claimed.length; k++){
+    const v = f(claimed[k]);
+    let allow = 1e-6;
+    if(roundTo){
+      const h = 1e-4;
+      const d = (f(C(claimed[k].re + h, claimed[k].im)).re - f(C(claimed[k].re - h, claimed[k].im)).re) / (2*h);
+      allow = Math.max(1e-6, 4 * roundTo * (Math.abs(d) + 1));
+    }
+    if(!(Math.abs(v.re) <= allow && Math.abs(v.im) <= allow)) return false;
+  }
+  if(co){                                                  // completeness of the root set
+    const rr = rootsOf(co);
+    if(rr === "all" || rr === "none") return false;
+    if(rr.length !== claimed.length) return false;
+    const tol = Math.max(1e-6, roundTo * 1.2);
+    for(let k = 0; k < rr.length; k++){
+      let hit = false;
+      for(let j = 0; j < claimed.length; j++) if(cEq(rr[k], claimed[j], tol)) hit = true;
+      if(!hit) return false;
+    }
+  }
+  return true;
+}
+["linear-eq","linear-fractions","factor-a1","factor-a","factor-special",
+ "not-standard","square-root-prop","complete-square","quad-formula"].forEach(function(id){
+  AUDIT[id] = function(q){
+    if(id === "complete-square" && q.prompt.indexOf("perfect square trinomial") >= 0){
+      // "what number completes the square for x^2 + bx" — check (b/2)^2 directly
+      const t = promptToMath(q.prompt);
+      const m = t.match(/x\^2\s*([+−-])\s*(\d+)x/);
+      if(!m) return null;
+      const b = (m[1] === "+" ? 1 : -1) * parseFloat(m[2]);
+      return NEAR(q.vals[0].re, (b/2)*(b/2));
+    }
+    return auditEquation(q);
+  };
+});
+AUDIT["rational-eq"] = function(q){
+  const text = eqExpr(q.prompt) || mathPart(promptToMath(q.prompt));
+  const f = eqFnC(text);
+  if(!f) return null;
+  const ex = text.match(/x\s*([+−-])\s*(\d+)/);            // denominator x ± p
+  const excluded = ex ? (ex[1] === "+" ? -1 : 1) * parseFloat(ex[2]) : null;
+  if(q.vals === null || q.vals === undefined){             // claims "no solution"
+    if(excluded === null) return null;
+    const g = eqFn(text);
+    // the cleared equation's root must be exactly the excluded value
+    const probe = 1e-4;
+    const near = g(C(excluded + probe, 0));
+    return Math.abs(near.re) > 1e3 || !isFinite(near.re);   // blows up at the excluded value
+  }
+  for(let k = 0; k < q.vals.length; k++){
+    if(excluded !== null && NEAR(q.vals[k].re, excluded)) return false;   // extraneous slipped through
+    const v = f(q.vals[k]);
+    if(!(Math.abs(v.re) < 1e-6 && Math.abs(v.im) < 1e-6)) return false;
+  }
+  return true;
+};
+AUDIT["classify-eq"] = function(q){
+  const text = mathPart(promptToMath(q.prompt));
+  const f = eqFn(text);
+  if(!f) return null;
+  const co = polyCoeffs(f);
+  if(!co || Math.abs(co.a) > 1e-9) return null;
+  const said = q.ans;
+  if(Math.abs(co.b) < 1e-9){
+    return Math.abs(co.c) < 1e-9 ? said.indexOf("All real") === 0 : said.indexOf("No solution") === 0;
+  }
+  const root = -co.c/co.b;
+  const m = said.match(/x\s*=\s*(−?\d+)/);
+  if(!m) return false;
+  return NEAR(parseFloat(m[1].replace(/−/g,"-")), root);
+};
+AUDIT["intercepts"] = function(q){
+  const wantX = /x-intercept/.test(promptToMath(q.prompt));
+  const pt = q.vals;
+  if(!pt || pt.length !== 2) return null;
+  if(wantX && !NEAR(pt[1].re, 0)) return false;      // an x-intercept must be (a, 0)
+  if(!wantX && !NEAR(pt[0].re, 0)) return false;     // a y-intercept must be (0, b)
+  const eq = eqExpr(q.prompt);
+  if(!eq) return null;
+  const parts = eq.split("=");
+  if(parts.length !== 2) return null;
+  try {
+    const env = { x: pt[0].re, y: pt[1].re };
+    const L = evalExpr(pre(parts[0]), env), Rr = evalExpr(pre(parts[1]), env);
+    return NEAR(L.re - Rr.re, 0, 1e-6);              // the point satisfies the printed equation
+  } catch(e){ return null; }
+};
+/* read-graph has no printed equation — recover the line from the pixels of the
+   drawn SVG, which is what the student actually reads off */
+AUDIT["read-graph"] = function(q){
+  const pt = q.vals;
+  if(!pt || pt.length !== 2 || !q.svg) return null;
+  const m = q.svg.match(/class="ln"\s+x1="([-\d.]+)"\s+y1="([-\d.]+)"\s+x2="([-\d.]+)"\s+y2="([-\d.]+)"/);
+  const sizeM = q.svg.match(/width="(\d+)"/);
+  if(!m || !sizeM) return null;
+  const gl = (q.svg.match(/class="gl"/g) || []).length;      // 2*(2r+1) grid lines
+  const r = ((gl / 2) - 1) / 2;
+  const S = parseFloat(sizeM[1]), pad = 16;
+  const span = S - pad*2, step = span / (2*r), cx = pad + span/2, cy = pad + span/2;
+  const toX = function(px){ return (parseFloat(px) - cx)/step; };
+  const toY = function(py){ return (cy - parseFloat(py))/step; };
+  const x1 = toX(m[1]), y1 = toY(m[2]), x2 = toX(m[3]), y2 = toY(m[4]);
+  if(NEAR(x2, x1, 1e-9)) return null;
+  const slope = (y2 - y1)/(x2 - x1), inter = y1 - slope*x1;
+  const wantX = /x-intercept/.test(promptToMath(q.prompt));
+  if(wantX){
+    if(!NEAR(pt[1].re, 0, 1e-6)) return false;
+    return NEAR(slope*pt[0].re + inter, 0, 1e-6);
+  }
+  if(!NEAR(pt[0].re, 0, 1e-6)) return false;
+  return NEAR(pt[1].re, inter, 1e-6);
+};
+AUDIT["solve-for-y"] = function(q){
+  const eq = eqExpr(q.prompt);
+  if(!eq) return null;
+  const parts = eq.split("=");
+  if(parts.length !== 2) return null;
+  const line = parseLine(q.ans);
+  if(!line || line.vertical) return false;
+  for(let xv = -3; xv <= 3; xv++){
+    const yv = line.m*xv + line.b;
+    try {
+      const L = evalExpr(pre(parts[0]), { x:xv, y:yv }), Rr = evalExpr(pre(parts[1]), { x:xv, y:yv });
+      if(!NEAR(L.re - Rr.re, 0, 1e-6)) return false;
+    } catch(e){ return null; }
+  }
+  return true;
+};
+AUDIT["write-line"] = AUDIT["par-perp-write"] = function(q){
+  const text = promptToMath(q.prompt);
+  const pts = pointsIn(text);
+  const line = parseLine(q.ans);
+  if(!line || !pts.length) return null;
+  if(line.vertical) return false;
+  // the answer must pass through the point(s) named in the prompt
+  const through = pts.some(function(p){ return NEAR(line.m*p[0] + line.b, p[1], 1e-6); });
+  if(!through) return false;
+  if(q.topic === "write-line" && pts.length === 2){
+    const m = (pts[1][1]-pts[0][1])/(pts[1][0]-pts[0][0]);
+    return NEAR(line.m, m, 1e-6);
+  }
+  if(q.topic === "write-line" && /with slope/.test(text)){
+    // the stated slope: the one expression that is neither an equation nor an ordered pair
+    const given = exprsIn(q.prompt).filter(function(z){
+      return z.indexOf("=") < 0 && !/^\(.*,.*\)$/.test(z.trim());
+    });
+    if(!given.length) return null;
+    try { return NEAR(line.m, evalExpr(pre(given[0]), null).re, 1e-6); } catch(e){ return null; }
+  }
+  if(q.topic === "par-perp-write"){
+    const given = parseLine(eqExpr(q.prompt) || "");
+    if(!given || given.vertical) return null;
+    const wantPar = /parallel/.test(text);
+    return wantPar ? NEAR(line.m, given.m, 1e-6) : NEAR(line.m * given.m, -1, 1e-6);
+  }
+  return true;
+};
+AUDIT["par-perp-id"] = function(q){
+  const lines = exprsIn(q.prompt).filter(function(z){ return z.indexOf("=") > 0; });
+  if(lines.length < 2) return null;
+  const a = parseLine(lines[lines.length-2]), b = parseLine(lines[lines.length-1]);
+  if(!a || !b || a.vertical || b.vertical) return null;
+  const rel = NEAR(a.m, b.m, 1e-9) ? "Parallel" : (NEAR(a.m*b.m, -1, 1e-9) ? "Perpendicular" : "Neither");
+  return q.ans === rel;
+};
+AUDIT["hv-lines"] = function(q){
+  const text = promptToMath(q.prompt);
+  if(/slope of the line/.test(text)){
+    const vertical = /x\s*=/.test(mathPart(text));
+    return vertical ? q.ans === "undefined" : q.ans === "0";
+  }
+  const pts = pointsIn(text);
+  if(!pts.length) return null;
+  const horiz = /horizontal/.test(text);
+  const line = parseLine(q.ans);
+  if(!line) return false;
+  return horiz ? (!line.vertical && NEAR(line.m, 0) && NEAR(line.b, pts[0][1]))
+               : (line.vertical && NEAR(line.at, pts[0][0]));
+};
+AUDIT["distance"] = AUDIT["word-21"] = function(q){
+  const text = promptToMath(q.prompt);
+  const pts = pointsIn(text);
+  if(pts.length < 2) return null;
+  const dx = pts[1][0]-pts[0][0], dy = pts[1][1]-pts[0][1];
+  if(/halfway|midpoint/.test(text)){
+    return q.vals && NEAR(q.vals[0].re, (pts[0][0]+pts[1][0])/2, 1e-6) && NEAR(q.vals[1].re, (pts[0][1]+pts[1][1])/2, 1e-6);
+  }
+  const d = Math.sqrt(dx*dx + dy*dy);
+  return q.vals && q.vals.length === 1 && NEAR(q.vals[0].re, d, 0.0051);
+};
+AUDIT["midpoint"] = function(q){
+  const pts = pointsIn(promptToMath(q.prompt));
+  if(pts.length < 2) return null;
+  return q.vals && NEAR(q.vals[0].re, (pts[0][0]+pts[1][0])/2, 1e-6)
+                && NEAR(q.vals[1].re, (pts[0][1]+pts[1][1])/2, 1e-6);
+};
+AUDIT["slope"] = function(q){
+  const pts = pointsIn(promptToMath(q.prompt));
+  if(pts.length < 2) return null;
+  const dx = pts[1][0]-pts[0][0], dy = pts[1][1]-pts[0][1];
+  if(dx === 0) return q.ans === "undefined";
+  return q.vals && q.vals.length === 1 && NEAR(q.vals[0].re, dy/dx, 1e-6);
+};
+AUDIT["quadrant"] = function(q){
+  const pts = pointsIn(promptToMath(q.prompt));
+  if(!pts.length) return null;
+  const x = pts[0][0], y = pts[0][1];
+  let want;
+  if(x === 0 && y === 0) want = "At the origin (no quadrant)";
+  else if(x === 0) want = "On the y-axis (no quadrant)";
+  else if(y === 0) want = "On the x-axis (no quadrant)";
+  else want = quadName(x,y);
+  return q.ans === want;
+};
+AUDIT["plot-point"] = AUDIT["plot-complex"] = function(q){
+  const text = promptToMath(q.prompt);
+  if(q.topic === "plot-point"){
+    const pts = pointsIn(text);
+    return pts.length ? (q.pt.x === pts[0][0] && q.pt.y === pts[0][1]) : null;
+  }
+  const m = text.match(/Plot\s+(.+?)\s+in the complex plane/);
+  if(!m) return null;
+  try {
+    const z = evalExpr(pre(m[1]), null);
+    return NEAR(z.re, q.pt.x) && NEAR(z.im, q.pt.y);
+  } catch(e){ return null; }
+};
+AUDIT["excluded-values"] = function(q){
+  const text = eqExpr(q.prompt) || mathPart(promptToMath(q.prompt));
+  if(!q.vals) return null;
+  // each excluded value must make a denominator zero
+  const dens = [];
+  const re = /\(\(([^()]*)\)\/\(([^()]*)\)\)/g;
+  let m;
+  while((m = re.exec(text)) !== null) dens.push(m[2]);
+  if(dens.length < 2) return null;
+  if(q.vals.length !== dens.length) return false;
+  for(let k = 0; k < dens.length; k++){
+    let zeroed = false;
+    for(let j = 0; j < q.vals.length; j++){
+      try { if(NEAR(evalExpr(pre(dens[k]), { x:q.vals[j].re }).re, 0, 1e-9)) zeroed = true; } catch(e){}
+    }
+    if(!zeroed) return false;
+  }
+  return true;
+};
+["neg-radical","complex-addsub","complex-mult","complex-div","powers-of-i"].forEach(function(id){
+  AUDIT[id] = function(q){
+    const ex = exprsIn(q.prompt);
+    const text = ex.length ? ex[0] : mathPart(promptToMath(q.prompt));
+    let val;
+    try { val = evalExpr(pre(text), null); } catch(e){ return null; }
+    return q.vals && q.vals.length === 1 && cEq(q.vals[0], val, 1e-6);
+  };
+});
+AUDIT["eval-complex"] = function(q){
+  const text = promptToMath(q.prompt);
+  const m = text.match(/Evaluate\s+(.+?)\s+when\s+x\s*=\s*(.+?)\.?$/);
+  if(!m) return null;
+  try {
+    const z = evalExpr(pre(m[2]), null);
+    const rep = "(" + z.re + (z.im < 0 ? "-" : "+") + Math.abs(z.im) + "i)";
+    const val = evalExpr(pre(m[1]).replace(/x/g, rep), null);
+    return q.vals && q.vals.length === 1 && cEq(q.vals[0], val, 1e-6);
+  } catch(e){ return null; }
+};
+AUDIT["discriminant"] = function(q){
+  const text = eqExpr(q.prompt);
+  if(!text) return null;
+  const f = eqFn(text);
+  if(!f) return null;
+  const co = polyCoeffs(f);
+  if(!co) return null;
+  return q.ans === discWord(co.b*co.b - 4*co.a*co.c);
+};
+AUDIT["quad-application"] = function(q){
+  const text = promptToMath(q.prompt);
+  const n = numsIn(text);
+  if(!q.vals || q.vals.length !== 1) return null;
+  const v = q.vals[0].re;
+  if(/rectangle/.test(text)){
+    if(n.length < 2) return null;
+    const k = n[0], area = n[1];
+    return NEAR(v*(v+k), area, 1e-6) && v > 0;
+  }
+  if(/right triangle/.test(text)){
+    if(n.length < 2) return null;
+    const k = n[0], hyp = n[1];
+    return NEAR(v*v + (v+k)*(v+k), hyp*hyp, 1e-6) && v > 0;
+  }
+  return null;
+};
+
+window.__audit = function(runs){
+  const N = runs || 500;
+  const problems = [], stats = {};
+  TOPICS.forEach(function(t){
+    stats[t.id] = { ok:0, bad:0, skip:0, concept: /^concept-/.test(t.id) };
+    for(let k = 0; k < N; k++){
+      let q;
+      try { q = buildQuestion(t); } catch(e){ problems.push(t.id + ": threw " + e.message); break; }
+      const fn = AUDIT[t.id];
+      if(!fn){ stats[t.id].skip++; continue; }
+      let r;
+      try { r = fn(q); } catch(e){ r = null; }
+      if(r === true) stats[t.id].ok++;
+      else if(r === false){
+        stats[t.id].bad++;
+        if(problems.length < 40){
+          problems.push(t.id + " WRONG ANSWER\n      prompt: " + promptToMath(q.prompt).slice(0,150) +
+                        "\n      says:   " + q.ans);
+        }
+      } else stats[t.id].skip++;
+    }
+  });
+  // a non-concept topic that never verified is a hole in the audit, not a pass
+  Object.keys(stats).forEach(function(id){
+    const s = stats[id];
+    if(s.concept) return;
+    if(s.ok === 0 && s.bad === 0) problems.push(id + ": NOT VERIFIED — audit could not check any instance");
+    else if(s.skip > N * 0.25) problems.push(id + ": only " + s.ok + "/" + N + " verified (" + s.skip + " unparsed)");
+  });
+  return { runs:N, stats:stats, problems:problems };
+};
+
+/* pairing hooks: expose what each view *should* be showing, plus this
+   question's own audit verdict, so a test can compare against the rendered DOM */
+function runAudit(q){
+  const f = AUDIT[q.topic];
+  if(!f) return null;
+  try { return f(q); } catch(e){ return null; }
+}
+function pairInfo(q){
+  return {
+    topic: q.topic,
+    promptText: promptToMath(q.prompt).replace(/\s+/g, " ").trim(),
+    ansText: promptToMath(mt(q.ansHtml || q.ans)).replace(/\s+/g, " ").trim(),
+    audit: runAudit(q),
+    mcCorrect: q.mc ? q.mc.filter(function(m){ return m.ok; }).map(function(m){ return m.v; }) : null
+  };
+}
+window.__printSet = function(){ return (lastPrintSet || []).map(pairInfo); };
+window.__sessionSet = function(){ return (S ? S.qs : []).map(pairInfo); };
 
 /* build-check hooks (harmless in normal use) */
 window.__topics = function(){ return TOPICS.map(function(t){ return { id:t.id, sec:t.sec, name:t.name }; }); };
